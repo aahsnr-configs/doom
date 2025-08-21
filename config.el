@@ -1,210 +1,138 @@
 ;;; $DOOMDIR/config.el -*- lexical-binding: t; -*-
 
-;; Place your private configuration here! Remember, you do not need to run 'doom
-;; sync' after modifying this file!
-(use-package! org-tempo
-  :after org
-  :config
-  (setq org-src-window-setup 'split-window-below
-        org-src-fontify-natively t
-        org-src-tab-acts-natively t)
-  (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
-  (add-to-list 'org-structure-template-alist '("py" . "src python"))
-  (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp")))
-
-;;; config.el -*- lexical-binding: t; -*-
-
-;;;; ------------------------------------------------------------------
-;;;; #1: PERSONAL INFORMATION & CORE SETUP
-;;;; ------------------------------------------------------------------
-;;; This block sets your personal details, which are used by various Emacs
-;;; packages for things like email, code authorship, and file templates.
-
-(setq user-full-name "Ahsanur Rahman"
-      user-mail-address "ahsanur041@proton.me")
-
-
-(use-package! org-tempo
-  :after org
-  :config
-  (setq org-src-window-setup 'split-window-below
-        org-src-fontify-natively t
-        org-src-tab-acts-natively t)
-  (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
-  (add-to-list 'org-structure-template-alist '("py" . "src python"))
-  (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp")))
-
-;;;; ------------------------------------------------------------------
-;;;; #2: TREE-SITTER CONFIGURATION
-;;;; ------------------------------------------------------------------
-;;; This block ensures that Tree-sitter-based major modes (`-ts-mode`) are
-;;; preferred over their traditional counterparts. This is essential for the
-;;; Org mode hooks to work correctly.
-
-(after! tree-sitter
-  (add-to-list 'major-mode-remap-alist '(python-mode . python-ts-mode)))
-
-
-;;;; ------------------------------------------------------------------
-;;;; #3: PYTHON IDE CONFIGURATION
-;;;; ------------------------------------------------------------------
-;;; This section configures the core IDE tools for Python files. These same
-;;; tools will be leveraged by our Org mode setup.
-
-;;;## Language Server, Diagnostics & Formatting
-;;; Configures `eglot` to use the `pyright` language server, sets up `flymake`
-;;; with Python-specific checkers, and defines `ruff` as the auto-formatter on save.
-(after! eglot
-  (add-to-list 'eglot-server-programs '((python-mode python-ts-mode) . ("pyright-langserver" "--stdio"))))
-
-(add-hook! '(python-mode-hook python-ts-mode-hook)
-  (defun +python-flymake-setup-h ()
-    (flymake-collection-hook-setup)
-    (setq-local flymake-checkers '(flymake-collection-ruff flymake-collection-mypy))))
-
-(set-formatter! 'ruff-format '("ruff" "format" "-") :modes '(python-mode python-ts-mode))
-
-
-;;;## Debugging with DAP
-;;; Registers a debug template for Python files, allowing you to launch the
-;;; debugger with a simple command.
-(after! dap-mode
-  (dap-register-debug-template
-   "Python (debugpy)"
-   (list :type "python" :request "launch" :name "Dape: Python File"
-         :program "${file}" :console "internalConsole")))
-
-;;; FIXED: Removed unnecessary lambda wrapper. `dap-debug-by-template` is already interactive.
-(map! :leader :map (python-mode-map python-ts-mode-map) :prefix ("d" . "debug")
-      "p" #'(dap-debug-by-template "Python (debugpy)"))
-
-
-;;;; ------------------------------------------------------------------
-;;;; #4: IDE FEATURES IN ORG MODE
-;;;; ------------------------------------------------------------------
-;;; This is the core of the setup. These hooks and functions activate the IDE
-;;; tools whenever you are inside an Org mode source block by creating temporary,
-;;; language-specific buffers in the background for the tools to analyze.
-
-;;;## LSP, Completion, and Diagnostics
-;;; This hook runs when you enter a source block, automatically starting the
-;;; language server and enabling documentation-on-hover.
-(add-hook! 'org-src-mode-hook
-  (defun ar/org-src-mode-setup-h ()
-    "Enable IDE features in Org source blocks."
-    ;; IMPROVED: Added a `when-let` to prevent errors on blocks with no language.
-    (when-let ((lang-str (org-element-property :language (org-element-at-point)))
-               (lang (intern-soft lang-str)))
-      ;; Activate Tree-sitter for font-locking inside the block
-      (when-let ((ts-mode (and (fboundp 'treesit-major-mode-for-language)
-                               (treesit-major-mode-for-language lang))))
-        (condition-case nil (funcall ts-mode)
-          (error (message "Tree-sitter mode for %s not found" lang))))
-      ;; Activate the LSP server and eldoc for documentation
-      (eglot-ensure)
-      (eldoc-mode +1))))
-
-;;;## Code Formatting
-;;; This ensures that the auto-formatter (`apheleia`) runs on the code inside
-;;; source blocks when you save the Org file.
-(after! apheleia
-  (add-to-list 'apheleia-mode-alist '(org-src-mode . org-mode)))
-
-;;;## Debugging with DAP
-;;; This function and keybinding allow you to debug a source block by extracting
-;;; its contents to a temporary file and launching the debugger on it.
-(defun ar/dap-debug-org-src-block ()
-  "Extract and debug the current org source block with DAP."
-  (interactive)
-  (let* ((info (org-babel-get-src-block-info 'light))
-         (lang (nth 0 info))
-         (body (nth 1 info))
-         ;; FIXED: This pcase now explicitly handles Python and provides a
-         ;; user-error for unsupported languages, preventing a cryptic DAP error.
-         (ext (pcase lang
-                ("python" "py")
-                (_ (user-error "DAP for language '%s' is not configured for Org blocks" lang))))
-         (tmp-file (make-temp-file "doom-org-debug-" nil (concat "." ext))))
-    (with-temp-file tmp-file
-      (insert body))
-    (message "Debugging block in temporary file: %s" tmp-file)
-    (dap-debug `(:type "python" ; Hardcoded to Python's DAP type
-                 :request "launch"
-                 :name ,(format "DAP: Org %s Block" lang)
-                 :program ,tmp-file))))
-
-(map! :leader
-      :prefix ("d" . "debug")
-      "B" #'ar/dap-debug-org-src-block)
-;; Some functionality uses this to identify you, e.g. GPG configuration, email
-;; clients, file templates and snippets. It is optional.
-;; (setq user-full-name "John Doe"
-;;       user-mail-address "john@doe.com")
-
-;; Doom exposes five (optional) variables for controlling fonts in Doom:
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Important Note on Startup Errors (e.g., Treemacs)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; If you are experiencing a startup error like "(wrong-number-of-arguments)"
+;; involving `treemacs` and `persp-activate`, this is an internal Doom Emacs
+;; package conflict, not an error in this file.
 ;;
-;; - `doom-font' -- the primary font to use
-;; - `doom-variable-pitch-font' -- a non-monospace font (where applicable)
-;; - `doom-big-font' -- used for `doom-big-font-mode'; use this for
-;;   presentations or streaming.
-;; - `doom-symbol-font' -- for symbols
-;; - `doom-serif-font' -- for the `fixed-pitch-serif' face
-;;
-;; See 'C-h v doom-font' for documentation and more examples of what they
-;; accept. For example:
-;;
-;;(setq doom-font (font-spec :family "Fira Code" :size 12 :weight 'semi-light)
-;;      doom-variable-pitch-font (font-spec :family "Fira Sans" :size 13))
-;;
-;; If you or Emacs can't find your font, use 'M-x describe-font' to look them
-;; up, `M-x eval-region' to execute elisp code, and 'M-x doom/reload-font' to
-;; refresh your font settings. If Emacs still can't find your font, it likely
-;; wasn't installed correctly. Font issues are rarely Doom issues!
+;; To fix it, run the following commands in your terminal and restart Emacs:
+;; 1. ~/.emacs.d/bin/doom sync
+;; 2. (If the problem persists) ~/.emacs.d/bin/doom upgrade
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; There are two ways to load a theme. Both assume the theme is installed and
-;; available. You can either set `doom-theme' or manually load a theme with the
-;; `load-theme' function. This is the default:
+;; Default theme
 (setq doom-theme 'doom-tokyo-night)
 
-;; This determines the style of line numbers in effect. If set to `nil', line
-;; numbers are disabled. For relative line numbers, set this to `relative'.
+;; This determines the style of line numbers in effect.
 (setq display-line-numbers-type t)
 
-;; If you use `org' and don't want your org files in the default location below,
-;; change `org-directory'. It must be set before org loads!
+;; Set the org directory before org loads.
 (setq org-directory "~/org/")
 
+;; Configure org-mode for easier source block editing.
+(use-package! org-tempo
+  :after org
+  :config
+  (setq org-src-window-setup 'split-window-below
+        org-src-fontify-natively t
+        org-src-tab-acts-natively t)
+  (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
+  (add-to-list 'org-structure-template-alist '("py" . "src python"))
+  (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp")))
 
-;; Whenever you reconfigure a package, make sure to wrap your config in an
-;; `after!' block, otherwise Doom's defaults may override your settings. E.g.
-;;
-;;   (after! PACKAGE
-;;     (setq x y))
-;;
-;; The exceptions to this rule:
-;;
-;;   - Setting file/directory variables (like `org-directory')
-;;   - Setting variables which explicitly tell you to set them before their
-;;     package is loaded (see 'C-h v VARIABLE' to look up their documentation).
-;;   - Setting doom variables (which start with 'doom-' or '+').
-;;
-;; Here are some additional functions/macros that will help you configure Doom.
-;;
-;; - `load!' for loading external *.el files relative to this one
-;; - `use-package!' for configuring packages
-;; - `after!' for running code after a package has loaded
-;; - `add-load-path!' for adding directories to the `load-path', relative to
-;;   this file. Emacs searches the `load-path' when you load packages with
-;;   `require' or `use-package'.
-;; - `map!' for binding new keys
-;;
-;; To get information about any of these functions/macros, move the cursor over
-;; the highlighted symbol at press 'K' (non-evil users must press 'C-c c k').
-;; This will open documentation for it, including demos of how they are used.
-;; Alternatively, use `C-h o' to look up a symbol (functions, variables, faces,
-;; etc).
-;;
-;; You can also try 'gd' (or 'C-c c d') to jump to their definition and see how
-;; they are implemented.
-;;; config.el -*- lexical-binding: t; -*-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Python Development Environment Configuration
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;;* Project Environment Management with direnv
+;; Integrates `direnv` to automatically load project-specific environments.
+(use-package! envrc
+  :ensure t
+  :config
+  (envrc-global-mode +1))
+
+
+;;* General Python Settings
+;; Configures the built-in `python.el` package.
+(use-package! python
+  :config
+  (setq python-indent-guess-indent-offset nil)
+  (setq python-indent-offset 4))
+
+
+;;* Language Server (LSP) with Pyright
+;; Assumes `(:lang python +lsp +pyright)` is in init.el.
+(use-package! lsp-pyright
+  :ensure nil ; Managed by Doom
+  :hook (python-ts-mode . (lambda ()
+                            (require 'lsp-pyright)
+                            (lsp)))
+  :init
+  (setq lsp-pyright-auto-import-completions t))
+
+
+;;* Debugging with DAP and debugpy
+;; Assumes `(:tools debugger +lsp)` is in init.el.
+(use-package! dap-python
+  :after (dap-mode)
+  :config
+  (setq dap-python-debugger 'debugpy)
+  (dap-register-debug-template
+   "Python :: Run Current File"
+   (list :type "python"
+         :request "launch"
+         :name "Python :: Run Current File"
+         :program "${file}"
+         :console "integratedTerminal")))
+
+
+;;* On-the-Fly Checking with Flymake
+;; Assumes `(:checkers (syntax +flymake +icons))` is in your init.el.
+(use-package! flymake
+  :ensure nil
+  :hook (python-ts-mode . flymake-mode)
+  :config
+  ;; Custom checker for the `bandit` security linter.
+  (defun my/flymake-bandit-backend (report-fn &rest _args)
+    "A flymake backend for the bandit security linter."
+    (flymake-proc-run "bandit"
+                      (list "-f" "json" (flymake-proc-source-file))
+                      :reporter (flymake-proc-reporter-json-in-tmpfile
+                                 report-fn
+                                 (flymake-proc-json-parse-keys '("results")
+                                   :line-key '("line_number")
+                                   :text-key '("issue_text")
+                                   :type-key '("issue_severity")
+                                   :file-key '("filename")))))
+  ;; Setup the checker chain for python-ts-mode.
+  (defun my/python-ts-flymake-setup ()
+    "Set up the flymake checker chain for Python."
+    (setq-local flymake-diagnostic-functions
+                (append flymake-diagnostic-functions
+                        '(flymake-ruff
+                          flymake-mypy
+                          my/flymake-bandit-backend))))
+  (add-hook 'python-ts-mode-hook #'my/python-ts-flymake-setup))
+
+
+;;* Auto-formatting with Apheleia and Ruff
+;; Assumes `(:editor format +onsave)` is in init.el.
+(use-package! apheleia
+  :ensure nil
+  :config
+  (setf (alist-get 'ruff apheleia-formatters)
+        '("ruff" "format" "-"))
+  (add-to-list 'apheleia-mode-alist '(python-ts-mode . ruff)))
+
+
+;;* Jupyter Integration for Org Mode
+;; Assumes `(:lang org +jupyter)` is in init.el.
+;; Your Python environment must have `jupyter` and `ipykernel` installed.
+(use-package! ob-jupyter
+  :after org
+  :config
+  ;; Explicitly set the default kernel for python blocks to `python3`.
+  (setq org-babel-jupyter-default-kernel "python3")
+  ;; Override `python` blocks to send them to the Jupyter kernel.
+  (with-eval-after-load 'ob-jupyter
+    (org-babel-jupyter-override-src-block "python")))
+
+;; Defer loading babel languages until after Org is loaded to prevent
+;; blocking startup and ensure the Doom dashboard appears correctly.
+(with-eval-after-load 'org
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((python . t)
+     (jupyter . t))))
