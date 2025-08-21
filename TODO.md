@@ -1,0 +1,2 @@
+- [ ] Remove trailing whitespace automatically
+- [ ] Define more snippets using the .yas-snippet
