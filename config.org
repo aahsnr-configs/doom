@@ -1,3 +1,11 @@
+#+TITLE: Doom Emacs Configuration
+#+AUTHOR: Ahsanur Rahman
+#+PROPERTY: header-args:emacs-lisp
+
+* Core Emacs & User Configuration
+This section sets up fundamental user information and core Emacs behavior. These settings provide a baseline for a stable and personalized experience.
+
+#+begin_src emacs-lisp
 (setq user-full-name "Ahsanur Rahman"
       user-mail-address "ahsanur041@proton.me")
 
@@ -31,7 +39,12 @@
             (lambda (frame)
               (with-selected-frame frame
                 (pgtk-use-im-context nil)))))
+#+end_src
 
+* UI & Theming
+This section configures the entire visual experience, from the color theme and fonts to the modeline and line numbers.
+
+#+begin_src emacs-lisp
 (use-package! doom-themes
   :custom
   (doom-themes-enable-bold t)
@@ -100,7 +113,12 @@
    `(rainbow-delimiters-depth-5-face ((t (:foreground ,(doom-color 'red)))))
    `(rainbow-delimiters-depth-6-face ((t (:foreground ,(doom-color 'green)))))
    `(rainbow-delimiters-depth-7-face ((t (:foreground ,(doom-color 'orange)))))))
+#+end_src
 
+* Evil (Vim Emulation)
+These settings customize Evil mode to better suit the workflow, including cursor appearance, escape behavior, and keybindings. Most evil extensions are omitted, as Doom provides excellent defaults.
+
+#+begin_src emacs-lisp
 (setq evil-v$-excludes-newline t
       evil-search-wrap nil
       evil-move-beyond-eol t
@@ -125,14 +143,24 @@
       "g c" #'evilnc-comment-or-uncomment-lines)
 (map! :map evil-visual-state-map
       "g c" #'evilnc-comment-or-uncomment-lines)
+#+end_src
 
+* Completion Framework
+This section configures the Vertico/Corfu completion UI, ensuring a fast and responsive experience.
+
+#+begin_src emacs-lisp
 (after! vertico
   (setq vertico-count 10))
 
 (after! corfu
   (setq corfu-auto-resize nil
         corfu-auto-delay 0.1))
+#+end_src
 
+* Project & File Management
+This section configures tools for managing projects, buffers, and files, including Dired (the file manager) and Ibuffer (the buffer list).
+
+#+begin_src emacs-lisp
 ;; Automatically clean up inactive buffers to reduce clutter.
 (use-package! buffer-terminator
   :custom
@@ -251,7 +279,13 @@
           ("p" "~/Projects/" "Projects")
           ("/" "/" "Root")))
   (setq dirvish-attributes '(nerd-icons file-time file-size collapse subtree-state vc-state)))
+#+end_src
 
+* Development Environment
+This section configures the core IDE features: LSP for code intelligence, DAP for debugging, Flycheck for linting, and Doom's native formatter.
+
+** Linting, Formatting, and Tree-sitter
+#+begin_src emacs-lisp
 ;; Use sideline for a cleaner, inline display of flycheck diagnostics.
 (use-package! sideline-flycheck
   :hook (flycheck-mode . sideline-mode)
@@ -273,7 +307,12 @@
 (set-formatter! 'ruff "ruff" "format" "-")
 (set-formatter! 'latexindent "latexindent" "-g" "/dev/null")
 (set-formatter! 'prettier "prettier" "--prose-wrap" "always")
+#+end_src
 
+** Language: Python
+This section provides a complete IDE experience for Python, including LSP, debugging, and a comprehensive linting setup.
+
+#+begin_src emacs-lisp
 ;; Prioritize our own Flycheck setup over LSP diagnostics from pyright.
 (after! lsp-pyright
   (setq lsp-pyright-disable-language-service t
@@ -303,7 +342,12 @@
    (list :type "python" :request "launch" :name "DAP: Py - Pytest File"
          :module "pytest" :args ["-s" "-v" "${file}"]
          :console "integratedTerminal")))
+#+end_src
 
+** Language: Jupyter
+This configures Org mode's integration with Jupyter notebooks for interactive Python sessions.
+
+#+begin_src emacs-lisp
 (after! jupyter
   (setq jupyter-python-set-repl-for-current-buffer t
         jupyter-favorite-kernels '("python3")
@@ -321,7 +365,12 @@
           (:session . "python")
           (:kernel . "python3")))
   (add-hook 'org-babel-after-execute-hook 'org-redisplay-inline-images))
+#+end_src
 
+** Language: Org Mode
+This is the heart of the configuration for Org mode, setting up everything from file paths and appearance to task management and Roam.
+
+#+begin_src emacs-lisp
 (defvar my/org-directory "~/org/" "Base directory for all org files.")
 (defvar my/org-roam-directory (expand-file-name "roam/" my/org-directory) "Directory for org-roam files.")
 
@@ -524,7 +573,12 @@
            ((tags "project" ((org-agenda-overriding-header "📋 All Projects")))))
           ("g" "🎯 Goals Review"
            ((tags-todo "goal" ((org-agenda-overriding-header "🎯 Goals"))))))))
+#+end_src
 
+** Language: LaTeX & Citations
+This configures the scientific writing environment for LaTeX, including the Tectonic compiler, LSP, and a citation system integrated with Org Roam.
+
+#+begin_src emacs-lisp
 (after! tex
   (setq TeX-engine 'tectonic)
   (setq TeX-view-program-selection '((output-pdf "PDF Tools")))
@@ -556,7 +610,12 @@
 
 (use-package! citar-org-roam :after (citar org-roam) :config (citar-org-roam-mode))
 (use-package! citar-embark :after (citar embark) :config (citar-embark-mode))
+#+end_src
 
+** Language: Markdown
+This section sets up a rich Markdown environment with live preview and a table of contents.
+
+#+begin_src emacs-lisp
 (use-package! md-roam
   :after markdown-mode
   :hook (markdown-mode . md-roam-mode)
@@ -574,7 +633,13 @@
   (add-hook 'md-roam-mode-hook #'ar/configure-md-roam-faces))
 
 (use-package! imenu-list :after markdown-mode)
+#+end_src
 
+* Miscellaneous
+This section contains version control settings, snippet configurations, spell checking, and final keybindings.
+
+** Version Control
+#+begin_src emacs-lisp
 (after! pdf-tools
   (setq pdf-view-midnight-colors (cons (doom-color 'bg) (doom-color 'fg)))
   (set-face-attribute 'pdf-view-highlight-face nil :background (doom-color 'cyan))
@@ -587,7 +652,10 @@
 
 (use-package! magit-todos :hook (magit-mode . magit-todos-mode))
 (use-package! git-timemachine :after magit)
+#+end_src
 
+** Snippets (Yasnippet)
+#+begin_src emacs-lisp
 ;; Custom user snippets are placed in `~/.config/doom/snippets/`.
 ;; For example, to create a new python snippet, create the file:
 ;; `~/.config/doom/snippets/python-mode/my-snippet.yas`
@@ -599,7 +667,10 @@
 
 ;; Make LaTeX snippets available in Org mode for scientific writing.
 (add-hook 'org-mode-hook (lambda () (setq-local yas-parents '(latex-mode))))
+#+end_src
 
+** Spell Checking
+#+begin_src emacs-lisp
 (use-package! jinx
   :hook ((text-mode . jinx-mode)
          (prog-mode . jinx-mode)
@@ -628,7 +699,10 @@
   (after! vertico
     (when (boundp 'vertico-multiform-categories)
       (add-to-list 'vertico-multiform-categories '(jinx (vertico-grid-annotate . t))))))
+#+end_src
 
+** Final Keybindings & System
+#+begin_src emacs-lisp
 (setq forge-owned-accounts '(("aahsnr")))
 
 (use-package! feature-mode :mode "\\.feature$")
@@ -648,3 +722,4 @@
       :prefix ("c" . "code")
       "c" '(python-execute-file :wk "Run file")
       "r" '(dap-python-run-repl :wk "Run project REPL"))
+#+end_src

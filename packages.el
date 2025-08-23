@@ -54,37 +54,26 @@
 ;; --- Theme & UI ---
 (package! rainbow-delimiters)
 (package! buffer-terminator)
+(package! nerd-icons-ibuffer)
+
 
 ;; --- Editor Behaviour & Completion ---
 (package! helpful)
 (package! wgrep)
 (package! jinx)
 (package! consult-yasnippet)
-(package! nerd-icons-corfu)
 (package! yasnippet-capf)
 ;
 ;; --- Evil ---
-(package! evil-numbers)
-(package! evil-args)
-(package! evil-anzu)
-(package! evil-exchange)
-(package! evil-indent-plus)
-(package! evil-visualstar)
-(package! evil-snipe)
-(package! evil-lion)
 (package! evil-multiedit)
 
 ;; --- Org & Roam ---
 (package! org-roam-ui)
-; (package! doct)
 (package! org-super-agenda)
 (package! consult-org-roam)
-(package! evil-org)
-(package! org-noter)
 (package! org-fragtog)
 
 ;; --- Citations & LaTeX ---
-(package! citar)
 (package! citar-org-roam)
 (package! citar-embark)
 (package! laas)
@@ -106,16 +95,10 @@
 ;; --- Development & System ---
 (package! feature-mode)
 (package! sideline-flycheck)
+(package! evil-textobj-tree-sitter)
 (package! dired-open)
 (package! dired-git-info)
 (package! dired-ranger)
 
-(package! nerd-icons-ibuffer)
-
-
 ;; --- Ignored Packages ---
-;; (package! hydra :ignore t)
 (package! helm-bibtex :ignore t)
-;; ignoring flycheck packages causes problems
-; (package! flycheck-popup-tip :ignore t)
-; (package! flycheck-posframe :ignore t)
