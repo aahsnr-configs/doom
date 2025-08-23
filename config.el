@@ -1,138 +1,76 @@
 ;;; $DOOMDIR/config.el -*- lexical-binding: t; -*-
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Important Note on Startup Errors (e.g., Treemacs)
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; If you are experiencing a startup error like "(wrong-number-of-arguments)"
-;; involving `treemacs` and `persp-activate`, this is an internal Doom Emacs
-;; package conflict, not an error in this file.
-;;
-;; To fix it, run the following commands in your terminal and restart Emacs:
-;; 1. ~/.emacs.d/bin/doom sync
-;; 2. (If the problem persists) ~/.emacs.d/bin/doom upgrade
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Place your private configuration here! Remember, you do not need to run 'doom
+;; sync' after modifying this file!
 
-;; Default theme
+
+;; Some functionality uses this to identify you, e.g. GPG configuration, email
+;; clients, file templates and snippets. It is optional.
+;; (setq user-full-name "John Doe"
+;;       user-mail-address "john@doe.com")
+
+;; Doom exposes five (optional) variables for controlling fonts in Doom:
+;;
+;; - `doom-font' -- the primary font to use
+;; - `doom-variable-pitch-font' -- a non-monospace font (where applicable)
+;; - `doom-big-font' -- used for `doom-big-font-mode'; use this for
+;;   presentations or streaming.
+;; - `doom-symbol-font' -- for symbols
+;; - `doom-serif-font' -- for the `fixed-pitch-serif' face
+;;
+;; See 'C-h v doom-font' for documentation and more examples of what they
+;; accept. For example:
+;;
+;;(setq doom-font (font-spec :family "Fira Code" :size 12 :weight 'semi-light)
+;;      doom-variable-pitch-font (font-spec :family "Fira Sans" :size 13))
+;;
+;; If you or Emacs can't find your font, use 'M-x describe-font' to look them
+;; up, `M-x eval-region' to execute elisp code, and 'M-x doom/reload-font' to
+;; refresh your font settings. If Emacs still can't find your font, it likely
+;; wasn't installed correctly. Font issues are rarely Doom issues!
+
+;; There are two ways to load a theme. Both assume the theme is installed and
+;; available. You can either set `doom-theme' or manually load a theme with the
+;; `load-theme' function. This is the default:
 (setq doom-theme 'doom-tokyo-night)
 
-;; This determines the style of line numbers in effect.
+;; This determines the style of line numbers in effect. If set to `nil', line
+;; numbers are disabled. For relative line numbers, set this to `relative'.
 (setq display-line-numbers-type t)
 
-;; Set the org directory before org loads.
+;; If you use `org' and don't want your org files in the default location below,
+;; change `org-directory'. It must be set before org loads!
 (setq org-directory "~/org/")
 
-;; Configure org-mode for easier source block editing.
-(use-package! org-tempo
-  :after org
-  :config
-  (setq org-src-window-setup 'split-window-below
-        org-src-fontify-natively t
-        org-src-tab-acts-natively t)
-  (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
-  (add-to-list 'org-structure-template-alist '("py" . "src python"))
-  (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp")))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Python Development Environment Configuration
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;;* Project Environment Management with direnv
-;; Integrates `direnv` to automatically load project-specific environments.
-(use-package! envrc
-  :ensure t
-  :config
-  (envrc-global-mode +1))
-
-
-;;* General Python Settings
-;; Configures the built-in `python.el` package.
-(use-package! python
-  :config
-  (setq python-indent-guess-indent-offset nil)
-  (setq python-indent-offset 4))
-
-
-;;* Language Server (LSP) with Pyright
-;; Assumes `(:lang python +lsp +pyright)` is in init.el.
-(use-package! lsp-pyright
-  :ensure nil ; Managed by Doom
-  :hook (python-ts-mode . (lambda ()
-                            (require 'lsp-pyright)
-                            (lsp)))
-  :init
-  (setq lsp-pyright-auto-import-completions t))
-
-
-;;* Debugging with DAP and debugpy
-;; Assumes `(:tools debugger +lsp)` is in init.el.
-(use-package! dap-python
-  :after (dap-mode)
-  :config
-  (setq dap-python-debugger 'debugpy)
-  (dap-register-debug-template
-   "Python :: Run Current File"
-   (list :type "python"
-         :request "launch"
-         :name "Python :: Run Current File"
-         :program "${file}"
-         :console "integratedTerminal")))
-
-
-;;* On-the-Fly Checking with Flymake
-;; Assumes `(:checkers (syntax +flymake +icons))` is in your init.el.
-(use-package! flymake
-  :ensure nil
-  :hook (python-ts-mode . flymake-mode)
-  :config
-  ;; Custom checker for the `bandit` security linter.
-  (defun my/flymake-bandit-backend (report-fn &rest _args)
-    "A flymake backend for the bandit security linter."
-    (flymake-proc-run "bandit"
-                      (list "-f" "json" (flymake-proc-source-file))
-                      :reporter (flymake-proc-reporter-json-in-tmpfile
-                                 report-fn
-                                 (flymake-proc-json-parse-keys '("results")
-                                   :line-key '("line_number")
-                                   :text-key '("issue_text")
-                                   :type-key '("issue_severity")
-                                   :file-key '("filename")))))
-  ;; Setup the checker chain for python-ts-mode.
-  (defun my/python-ts-flymake-setup ()
-    "Set up the flymake checker chain for Python."
-    (setq-local flymake-diagnostic-functions
-                (append flymake-diagnostic-functions
-                        '(flymake-ruff
-                          flymake-mypy
-                          my/flymake-bandit-backend))))
-  (add-hook 'python-ts-mode-hook #'my/python-ts-flymake-setup))
-
-
-;;* Auto-formatting with Apheleia and Ruff
-;; Assumes `(:editor format +onsave)` is in init.el.
-(use-package! apheleia
-  :ensure nil
-  :config
-  (setf (alist-get 'ruff apheleia-formatters)
-        '("ruff" "format" "-"))
-  (add-to-list 'apheleia-mode-alist '(python-ts-mode . ruff)))
-
-
-;;* Jupyter Integration for Org Mode
-;; Assumes `(:lang org +jupyter)` is in init.el.
-;; Your Python environment must have `jupyter` and `ipykernel` installed.
-(use-package! ob-jupyter
-  :after org
-  :config
-  ;; Explicitly set the default kernel for python blocks to `python3`.
-  (setq org-babel-jupyter-default-kernel "python3")
-  ;; Override `python` blocks to send them to the Jupyter kernel.
-  (with-eval-after-load 'ob-jupyter
-    (org-babel-jupyter-override-src-block "python")))
-
-;; Defer loading babel languages until after Org is loaded to prevent
-;; blocking startup and ensure the Doom dashboard appears correctly.
-(with-eval-after-load 'org
-  (org-babel-do-load-languages
-   'org-babel-load-languages
-   '((python . t)
-     (jupyter . t))))
+;; Whenever you reconfigure a package, make sure to wrap your config in an
+;; `after!' block, otherwise Doom's defaults may override your settings. E.g.
+;;
+;;   (after! PACKAGE
+;;     (setq x y))
+;;
+;; The exceptions to this rule:
+;;
+;;   - Setting file/directory variables (like `org-directory')
+;;   - Setting variables which explicitly tell you to set them before their
+;;     package is loaded (see 'C-h v VARIABLE' to look up their documentation).
+;;   - Setting doom variables (which start with 'doom-' or '+').
+;;
+;; Here are some additional functions/macros that will help you configure Doom.
+;;
+;; - `load!' for loading external *.el files relative to this one
+;; - `use-package!' for configuring packages
+;; - `after!' for running code after a package has loaded
+;; - `add-load-path!' for adding directories to the `load-path', relative to
+;;   this file. Emacs searches the `load-path' when you load packages with
+;;   `require' or `use-package'.
+;; - `map!' for binding new keys
+;;
+;; To get information about any of these functions/macros, move the cursor over
+;; the highlighted symbol at press 'K' (non-evil users must press 'C-c c k').
+;; This will open documentation for it, including demos of how they are used.
+;; Alternatively, use `C-h o' to look up a symbol (functions, variables, faces,
+;; etc).
+;;
+;; You can also try 'gd' (or 'C-c c d') to jump to their definition and see how
+;; they are implemented.

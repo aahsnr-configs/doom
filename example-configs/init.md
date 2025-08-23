@@ -1,3 +1,6 @@
+# init.el
+
+```el
 ;;; init.el -*- lexical-binding: t; -*-
 
 ;; This file controls what Doom modules are enabled and what order they load
@@ -129,7 +132,8 @@
        ;;upload            ; map local to remote projects via ssh/ftp
 
        :os
-       ;;(tty +osc)
+       (tty
+        +osc)
 
        :lang
        ;;agda              ; types of types of types of types...
@@ -231,3 +235,5 @@
        :config
        ;;literate
        (default +bindings +smartparens))
+
+```

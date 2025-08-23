@@ -47,4 +47,45 @@
 ;; (unpin! pinned-package another-pinned-package)
 ;; ...Or *all* packages (NOT RECOMMENDED; will likely break things)
 ;; (unpin! t)
-(package! envrc)
+;; Added packages from vanilla-emacs.md merge
+
+;; NOTE: Packages provided by enabled Doom modules have been removed.
+
+;;; UI Enhancements
+(package! rainbow-delimiters)
+
+;;; Evil Mode Extensions (not included in Doom's `+everywhere` flag)
+(package! evil-snipe)
+(package! evil-lion)
+(package! evil-multiedit)
+
+;;; Editor Behavior
+(package! helpful)
+(package! wgrep)
+(package! indent-bars)
+(package! jinx)
+
+;;; Completion Framework Enhancements
+(package! nerd-icons-completion)
+(package! consult-yasnippet)
+(package! yasnippet-capf)
+(package! consult-org-roam) ; For Org Roam integration
+
+;;; Org Mode
+(package! org-roam-ui)
+(package! org-super-agenda)
+
+;;; Markdown
+(package! md-roam :recipe (:host github :repo "nobiot/md-roam"))
+(package! imenu-list)
+(package! flymake-markdownlint)
+
+;;; General Development
+(package! embark-vc)
+
+;;; Ignored Packages
+;; (package! hydra :ignore t)
+;; (package! helm-bibtex :ignore t)
+;; (package! flycheck-popup-tip :ignore t)
+;; (package! flycheck-posframe :ignore t)
+;; (package! posframe :ignore t)

@@ -1,3 +1,4 @@
+```el
 ;; -*- no-byte-compile: t; -*-
 ;;; $DOOMDIR/packages.el
 
@@ -23,13 +24,7 @@
 
 ;; If you'd like to disable a package included with Doom, you can do so here
 ;; with the `:disable' property:
-(package! hydra :disable t)
-(package! helm-bibtex :disable t)
-(package! helm-bibtex :disable t)
-
-(package! flymake-posframe :ignore t)
-(package! hydra :ignore t)
-(package! helm-bibtex :ignore t)
+;; (package! builtin-package :disable t)
 
 ;; You can override the recipe of a built in package without having to specify
 ;; all the properties for `:recipe'. These will inherit the rest of its recipe
@@ -55,41 +50,70 @@
 ;; (unpin! t)
 ;;; -*- lexical-binding: t; -*-
 
-;; UI & Theme Enhancements
-(package! mixed-pitch)
-(package! visual-fill-column)
-(package! info-colors)
+;;; -*- lexical-binding: t; -*-
+
+;; Performance
+(package! so-long)
+
+;; UI & Theming
+(package! rainbow-delimiters)
+(package! nerd-icons-completion)
+(package! nerd-icons-corfu)
 (package! nerd-icons-dired)
+(package! nerd-icons-ibuffer)
+(package! indent-bars)
+(package! info-colors)
 
-;; Evil Enhancements
-(package! evil-goggles)
+;; Editor Behavior & Workflow
+(package! shackle)
+(package! helpful)
+(package! wgrep)
+(package! buffer-terminator)
+
+;; Evil Extensions
 (package! evil-lion)
-(package! evil-textobj-tree-sitter)
-(package! string-inflection)
+(package! evil-multiedit)
+(package! evil-goggles)
+(package! evil-numbers)
+(package! evil-args)
+(package! evil-anzu)
+(package! evil-exchange)
+(package! evil-indent-plus)
+(package! evil-visualstar)
+(package! evil-matchit)
+(package! evil-snipe)
 
-;; Org Mode & Note Taking
+;; Completion & Snippets
+(package! consult-yasnippet)
+(package! yasnippet-snippets)
+(package! yasnippet-capf)
+
+;; Org & Roam
 (package! org-roam-ui)
 (package! doct)
 (package! org-super-agenda)
-(package! org-fragtog)
-;; Completion & Searching
-(package! consult-yasnippet)
+(package! org-modern)
+(package! org-appear)
 (package! consult-org-roam)
 
+;; Version Control
+(package! magit-todos)
+(package! git-timemachine)
+
 ;; LaTeX & Citations
-(package! citar-embark)
 (package! laas)
+(package! citar-org-roam)
+(package! citar-embark)
 
-;; Development
-(package! flymake-collection)
-(package! sideline-flymake)
-(package! eldoc-box)
-(package! vlf)  ;tecosaur config
+;; Dired
+(package! dired-open)
+(package! dired-ranger)
+(package! fd-dired)
 
-;; Markdown
-(package! vmd-mode)
+;; Ignored Packages
+(package! hydra :ignore t)
+(package! helm-bibtex :ignore t)
+(package! flycheck-popup-tip :ignore t)
+(package! flycheck-posframe :ignore t)
 
-;; Pandoc Integration
-(package! pandoc-mode)
-
-
+```
