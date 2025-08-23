@@ -49,43 +49,73 @@
 ;; (unpin! t)
 ;; Added packages from vanilla-emacs.md merge
 
-;; NOTE: Packages provided by enabled Doom modules have been removed.
+;;; -*- lexical-binding: t; -*-
 
-;;; UI Enhancements
+;; --- Theme & UI ---
 (package! rainbow-delimiters)
+(package! buffer-terminator)
 
-;;; Evil Mode Extensions (not included in Doom's `+everywhere` flag)
+;; --- Editor Behaviour & Completion ---
+(package! helpful)
+(package! wgrep)
+(package! jinx)
+(package! consult-yasnippet)
+(package! nerd-icons-corfu)
+(package! yasnippet-capf)
+;
+;; --- Evil ---
+(package! evil-numbers)
+(package! evil-args)
+(package! evil-anzu)
+(package! evil-exchange)
+(package! evil-indent-plus)
+(package! evil-visualstar)
 (package! evil-snipe)
 (package! evil-lion)
 (package! evil-multiedit)
 
-;;; Editor Behavior
-(package! helpful)
-(package! wgrep)
-(package! indent-bars)
-(package! jinx)
-
-;;; Completion Framework Enhancements
-(package! nerd-icons-completion)
-(package! consult-yasnippet)
-(package! yasnippet-capf)
-(package! consult-org-roam) ; For Org Roam integration
-
-;;; Org Mode
+;; --- Org & Roam ---
 (package! org-roam-ui)
+; (package! doct)
 (package! org-super-agenda)
+(package! consult-org-roam)
+(package! evil-org)
+(package! org-noter)
+(package! org-fragtog)
 
-;;; Markdown
+;; --- Citations & LaTeX ---
+(package! citar)
+(package! citar-org-roam)
+(package! citar-embark)
+(package! laas)
+(package! math-symbol-lists)
+(package! ox-chameleon :recipe (:host github :repo "tecosaur/ox-chameleon"))
+(package! engrave-faces :recipe (:host github :repo "tecosaur/engrave-faces"))
+
+;; --- Markdown ---
 (package! md-roam :recipe (:host github :repo "nobiot/md-roam"))
 (package! imenu-list)
 (package! flymake-markdownlint)
 
-;;; General Development
+;; --- Version Control ---
+(package! magit-todos)
+(package! git-timemachine)
+(package! git-gutter)
 (package! embark-vc)
 
-;;; Ignored Packages
+;; --- Development & System ---
+(package! feature-mode)
+(package! sideline-flycheck)
+(package! dired-open)
+(package! dired-git-info)
+(package! dired-ranger)
+
+(package! nerd-icons-ibuffer)
+
+
+;; --- Ignored Packages ---
 ;; (package! hydra :ignore t)
-;; (package! helm-bibtex :ignore t)
-;; (package! flycheck-popup-tip :ignore t)
-;; (package! flycheck-posframe :ignore t)
-;; (package! posframe :ignore t)
+(package! helm-bibtex :ignore t)
+;; ignoring flycheck packages causes problems
+; (package! flycheck-popup-tip :ignore t)
+; (package! flycheck-posframe :ignore t)

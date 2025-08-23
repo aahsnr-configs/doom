@@ -17,60 +17,612 @@
 ;;   presentations or streaming.
 ;; - `doom-symbol-font' -- for symbols
 ;; - `doom-serif-font' -- for the `fixed-pitch-serif' face
-;;
-;; See 'C-h v doom-font' for documentation and more examples of what they
-;; accept. For example:
-;;
-;;(setq doom-font (font-spec :family "Fira Code" :size 12 :weight 'semi-light)
-;;      doom-variable-pitch-font (font-spec :family "Fira Sans" :size 13))
-;;
-;; If you or Emacs can't find your font, use 'M-x describe-font' to look them
-;; up, `M-x eval-region' to execute elisp code, and 'M-x doom/reload-font' to
-;; refresh your font settings. If Emacs still can't find your font, it likely
-;; wasn't installed correctly. Font issues are rarely Doom issues!
 
-;; There are two ways to load a theme. Both assume the theme is installed and
-;; available. You can either set `doom-theme' or manually load a theme with the
-;; `load-theme' function. This is the default:
-(setq doom-theme 'doom-tokyo-night)
+;;;; ------------------------------------------------------------------
+;;;; CORE EMACS & USER CONFIGURATION
+;;;; ------------------------------------------------------------------
 
-;; This determines the style of line numbers in effect. If set to `nil', line
-;; numbers are disabled. For relative line numbers, set this to `relative'.
-(setq display-line-numbers-type t)
+(setq user-full-name "Ahsanur Rahman"
+      user-mail-address "ahsanur041@proton.me")
 
-;; If you use `org' and don't want your org files in the default location below,
-;; change `org-directory'. It must be set before org loads!
-(setq org-directory "~/org/")
+;; Improve scrolling behavior
+(setq scroll-error-top-bottom t
+      scroll-conservatively 120
+      scroll-margin 0)
+
+;; Prefer vertical splits over horizontal ones.
+(setq split-width-threshold 170
+      split-height-threshold nil)
+
+;; Set default indentation.
+(setq-default indent-tabs-mode nil
+              tab-width 2
+              fill-column 80)
+
+;; Frame Title Formatting
+(setq-default frame-title-format
+              '(:eval (if (buffer-file-name)
+                          (format "[%s] - %s"
+                                  (file-name-nondirectory (buffer-file-name))
+                                  (system-name))
+                        (format "[%s] - %s"
+                                (buffer-name)
+                                (system-name)))))
+
+;; Mitigate performance issues on Wayland/PGTK builds
+(when (fboundp 'pgtk-use-im-context)
+  (add-hook 'after-make-frame-functions
+            (lambda (frame)
+              (with-selected-frame frame
+                (pgtk-use-im-context nil)))))
 
 
-;; Whenever you reconfigure a package, make sure to wrap your config in an
-;; `after!' block, otherwise Doom's defaults may override your settings. E.g.
-;;
-;;   (after! PACKAGE
-;;     (setq x y))
-;;
-;; The exceptions to this rule:
-;;
-;;   - Setting file/directory variables (like `org-directory')
-;;   - Setting variables which explicitly tell you to set them before their
-;;     package is loaded (see 'C-h v VARIABLE' to look up their documentation).
-;;   - Setting doom variables (which start with 'doom-' or '+').
-;;
-;; Here are some additional functions/macros that will help you configure Doom.
-;;
-;; - `load!' for loading external *.el files relative to this one
-;; - `use-package!' for configuring packages
-;; - `after!' for running code after a package has loaded
-;; - `add-load-path!' for adding directories to the `load-path', relative to
-;;   this file. Emacs searches the `load-path' when you load packages with
-;;   `require' or `use-package'.
-;; - `map!' for binding new keys
-;;
-;; To get information about any of these functions/macros, move the cursor over
-;; the highlighted symbol at press 'K' (non-evil users must press 'C-c c k').
-;; This will open documentation for it, including demos of how they are used.
-;; Alternatively, use `C-h o' to look up a symbol (functions, variables, faces,
-;; etc).
-;;
-;; You can also try 'gd' (or 'C-c c d') to jump to their definition and see how
-;; they are implemented.
+;;;; ------------------------------------------------------------------
+;;;; UI & THEMING
+;;;; ------------------------------------------------------------------
+
+(use-package! doom-themes
+  :custom
+  (doom-themes-enable-bold t)
+  (doom-themes-enable-italic t)
+  (doom-themes-treemacs-theme "doom-tokyo-night")
+  :config
+  (load-theme 'doom-tokyo-night t)
+  (doom-themes-visual-bell-config)
+  (doom-themes-treemacs-config)
+  (doom-themes-org-config)
+  ;; Set distinct colors for bold and italic
+  (custom-set-faces
+   '(bold ((t (:foreground "#7aa2f7" :weight bold))))
+   '(italic ((t (:foreground "#bb9af7" :slant italic))))))
+
+(setq doom-font (font-spec :family "JetBrainsMono Nerd Font" :size 14.5 :weight 'medium)
+      doom-variable-pitch-font (font-spec :family "JetBrainsMono Nerd Font" :size 14.5)
+      doom-big-font (font-spec :family "JetBrainsMono Nerd Font" :size 26.0)
+      doom-unicode-font (font-spec :family "JetBrainsMono Nerd Font" :size 14.5))
+(setq-default line-spacing 0.00)
+
+(add-hook! 'doom-after-init-hook
+  (defun +my/setup-font-faces ()
+    (set-face-attribute 'font-lock-comment-face nil :slant 'italic)
+    (set-face-attribute 'font-lock-keyword-face nil :slant 'italic)))
+
+(after! which-key
+  (setq which-key-idle-delay 0.1
+        which-key-separator " → "
+        which-key-popup-type 'minibuffer)
+  (pushnew!
+   which-key-replacement-alist
+   '(("" . "\\`+?evil[-:]?\\(?:a-\\)?\\(.*\\)") . (nil . " \\1"))
+   '(("\\`g s" . "\\`evilem--?motion-\\(.*\\)") . (nil . " \\1"))))
+
+(after! doom-modeline
+  (setq doom-modeline-height 28
+        doom-modeline-bar-width 3
+        doom-modeline-icon t
+        doom-modeline-major-mode-icon t
+        doom-modeline-major-mode-color-icon t
+        doom-modeline-buffer-file-name-style 'truncate-upto-project
+        doom-modeline-buffer-state-icon t
+        doom-modeline-buffer-modification-icon t
+        doom-modeline-minor-modes nil
+        doom-modeline-enable-word-count nil
+        doom-modeline-buffer-encoding nil
+        doom-modeline-indent-info nil
+        doom-modeline-vcs-max-length 12
+        doom-modeline-env-version t))
+
+;; Enable line numbers for programming modes
+(add-hook! '(prog-mode-hook conf-mode-hook) #'display-line-numbers-mode)
+;; Disable line numbers for other modes
+(add-hook! '(org-mode-hook term-mode-hook shell-mode-hook eshell-mode-hook)
+           #'(lambda () (display-line-numbers-mode -1)))
+
+
+;;;; ------------------------------------------------------------------
+;;;; EVIL (VIM EMULATION)
+;;;; ------------------------------------------------------------------
+
+(setq evil-split-window-below t
+      evil-vsplit-window-right t
+      evil-want-fine-undo t
+      evil-v$-excludes-newline t
+      evil-search-wrap nil
+      evil-move-beyond-eol t
+      evil-want-Y-yank-to-eol t)
+
+(setq evil-normal-state-cursor '(box "#fe8019")
+      evil-insert-state-cursor '(bar "#fb4934")
+      evil-visual-state-cursor '(hollow "#fe8019"))
+
+(after! evil-escape
+  (setq evil-escape-key-sequence "jk"
+        evil-escape-delay 0.2
+        evil-escape-excluded-modes '(dired-mode)))
+
+(after! evil-goggles
+  (setq evil-goggles-duration 0.1))
+
+(map! :map evil-normal-state-map
+      "j" #'evil-next-visual-line
+      "k" #'evil-previous-visual-line
+      "gc" #'evilnc-comment-or-uncomment-lines)
+(map! :map evil-visual-state-map
+      "gc" #'evilnc-comment-or-uncomment-lines)
+
+
+;;;; ------------------------------------------------------------------
+;;;; COMPLETION FRAMEWORK (VERTICO, CONSULT, CORFU)
+;;;; ------------------------------------------------------------------
+
+(after! vertico
+  (setq vertico-count 10))
+
+(after! corfu
+  (setq corfu-auto-resize nil
+        corfu-auto-delay 0.1))
+
+;;;; ------------------------------------------------------------------
+;;;; EDITOR BEHAVIOUR & TOOLS
+;;;; ------------------------------------------------------------------
+
+(use-package! rainbow-delimiters
+  :hook (prog-mode . rainbow-delimiters-mode)
+  :config
+  (custom-set-faces
+   '(rainbow-delimiters-depth-1-face ((t (:foreground "#7aa2f7"))))  ; Blue
+   '(rainbow-delimiters-depth-2-face ((t (:foreground "#bb9af7"))))  ; Magenta
+   '(rainbow-delimiters-depth-3-face ((t (:foreground "#e0af68"))))  ; Yellow
+   '(rainbow-delimiters-depth-4-face ((t (:foreground "#73daca"))))  ; Cyan
+   '(rainbow-delimiters-depth-5-face ((t (:foreground "#f7768e"))))  ; Red
+   '(rainbow-delimiters-depth-6-face ((t (:foreground "#9ece6a"))))  ; Green
+   '(rainbow-delimiters-depth-7-face ((t (:foreground "#ff9e64"))))  ; Orange
+   '(rainbow-delimiters-depth-8-face ((t (:foreground "#c0caf5"))))  ; Foreground
+   '(rainbow-delimiters-depth-9-face ((t (:foreground "#a9b1d6")))))) ; Sub-Foreground
+
+(use-package! buffer-terminator
+  :custom
+  (buffer-terminator-verbose nil)
+  (buffer-terminator-inactivity-timeout (* 30 60)) ; 30 minutes
+  (buffer-terminator-interval (* 10 60)) ; 10 minutes
+  :config
+  (buffer-terminator-mode 1))
+
+(use-package! helpful
+  :bind
+  ([remap describe-command] . helpful-command)
+  ([remap describe-function] . helpful-callable)
+  ([remap describe-key] . helpful-key)
+  ([remap describe-symbol] . helpful-symbol)
+  ([remap describe-variable] . helpful-variable)
+  :custom
+  (helpful-max-buffers 7))
+
+(use-package! wgrep
+  :config
+  (setq wgrep-auto-save-buffer t))
+
+(use-package! jinx
+  :hook ((text-mode . jinx-mode)
+         (prog-mode . jinx-mode)
+         (org-mode . jinx-mode)
+         (markdown-mode . jinx-mode)
+         (git-commit-mode . jinx-mode))
+  :bind (("M-$" . jinx-correct)
+         ("C-M-$" . jinx-languages))
+  :init
+  (defvar my-jinx-ignored-words
+    '("DoomEmacs" "Elisp" "EmacsLisp" "use-package" "tecosaur"
+      "jinx-mode" "prog-mode" "conf-mode" "WIP" "regexp" "Ahsanur"
+      "Rahman" "toc" "LaTeX" "cleverparens" "parens" "dirvish"))
+  :config
+  (setq jinx-languages "en_US")
+  (setq jinx-delay 0.3)
+
+  (push `(t . (,(concat "\\<\\(" (mapconcat #'regexp-quote my-jinx-ignored-words "\\|") "\\)\\>")))
+        jinx-exclude-regexps)
+  (push '(org-mode
+          org-level-1 org-level-2 org-level-3 org-level-4
+          org-level-5 org-level-6 org-level-7 org-level-8
+          org-document-title org-block org-src-block
+          org-meta-line org-table org-link)
+        jinx-exclude-faces)
+  (after! vertico
+    (when (boundp 'vertico-multiform-categories)
+      (add-to-list 'vertico-multiform-categories '(jinx (vertico-grid-annotate . t))))))
+
+;;;; ------------------------------------------------------------------
+;;;; VTERM (TERMINAL EMULATOR)
+;;;; ------------------------------------------------------------------
+
+(setq vterm-kill-buffer-on-exit t)
+(defun +my/vterm-force-kill-current-buffer ()
+  (interactive)
+  (when (eq major-mode 'vterm-mode)
+    (kill-buffer (current-buffer) t)
+    (message "Vterm buffer killed forcefully.")))
+
+(map! :leader
+      :desc "Toggle vterm locally"  "v t" #'+vterm/toggle
+      :desc "Open vterm buffer locally" "v T" #'+vterm/here
+      :desc "Force kill current vterm buffer" "o k" #'+my/vterm-force-kill-current-buffer)
+
+
+;;;; ------------------------------------------------------------------
+;;;; IBUFFER (BUFFER MANAGEMENT)
+;;;; ------------------------------------------------------------------
+
+(use-package! nerd-icons-ibuffer :after ibuffer)
+(after! ibuffer
+  (setq ibuffer-never-show-regexps
+        '("\\` "
+          "\\*dashboard\\*$"
+          "\\*scratch\\*$"
+          "\\*Messages\\*$"
+          "\\*Help\\*$"
+          "\\*Backtrace\\*$"
+          "\\*Compile-Log\\*$"
+          "\\*Flymake diagnostics"
+          "\\*eglot-events\\*$"
+          "\\*Embark Collect"
+          "\\*vterm\\*"))
+  (setq ibuffer-formats
+        '((mark modified read-only " "
+                (icon 4 4 :left :elide)
+                (name 35 35 :left :elide)
+                " "
+                (size-h 9 9 :right :elide)
+                " "
+                (mode 16 16 :left :elide)
+                " "
+                filename-and-process)))
+
+  (defun ar/ibuffer-set-project-groups ()
+    "Create and set ibuffer filter groups based on known projects."
+    (let ((groups '()))
+      (when (fboundp 'projectile-project-p)
+        (dolist (proj (projectile-relevant-known-projects))
+          (let* ((proj-name (projectile-project-name proj))
+                 (proj-root (projectile-project-root proj)))
+            (push `(,proj-name (:eval (and (buffer-file-name)
+                                           (string-prefix-p proj-root (buffer-file-name)))))
+                  groups)))
+        (push '("Miscellaneous" (:predicate (lambda (buf)
+                                              (and (buffer-file-name buf)
+                                                   (not (projectile-project-p (buffer-file-name buf)))))))
+              groups)
+        (setq ibuffer-filter-groups (nreverse groups)))))
+
+  (add-hook 'ibuffer-mode-hook
+            (lambda ()
+              (nerd-icons-ibuffer-mode)
+              (ar/ibuffer-set-project-groups)
+              (ibuffer-do-sort-by-last-access-time)
+              (ibuffer-update nil t))))
+
+;;;; ------------------------------------------------------------------
+;;;; DIRED & DIRVISH (FILE MANAGEMENT)
+;;;; ------------------------------------------------------------------
+
+(use-package! dired-open
+  :config
+  (setq dired-open-extensions '(("png" . "imv") ("mp4" . "mpv"))))
+(use-package! dired-git-info)
+(use-package! nerd-icons-dired
+  :hook (dired-mode . nerd-icons-dired-mode))
+(use-package! dired-ranger
+  :after dired
+  :config
+  (map! :map dired-mode-map
+        "y" #'dired-ranger-copy
+        "p" #'dired-ranger-paste
+        "x" #'dired-ranger-move))
+
+(after! dired
+  (setq dired-listing-switches "-agho --group-directories-first"
+        dired-omit-files "^\\.[^.]\\|^#\\|^\\.$\\|^\\.\\.$\\|\\.pyc$\\|\\.o$"
+        dired-auto-revert-buffer t
+        dired-dwim-target t
+        dired-recursive-deletes 'always
+        dired-recursive-copies 'always)
+  (add-hook 'dired-mode-hook 'dired-hide-dotfiles-mode)
+  (add-hook 'dired-mode-hook 'dired-git-info-mode)
+  (map! :map dired-mode-map
+        ;; Navigation
+        "h" #'dired-up-directory
+        "l" #'dired-find-file-other-window
+        "G" #'dired-goto-file
+        "^" #'dired-goto-root-directory
+        "~" #'dired-home
+        "i" #'dired-maybe-insert-subdir
+        ;; File Operations
+        "C-n" #'dired-create-file
+        "C-d" #'dired-create-directory
+        "R" #'dired-do-rename
+        "X" #'dired-open-file))
+
+; (after! dirvish
+;   (setq dirvish-quick-access-entries
+;         '(("h" "~/" "Home")
+;           ("d" "~/Downloads/" "Downloads")
+;           ("D" "~/Documents/" "Documents")
+;           ("p" "~/Projects/" "Projects")
+;           ("/" "/" "Root")))
+;   (setq dirvish-attributes '(nerd-icons file-time file-size collapse subtree-state vc-state))
+;
+;;;; ------------------------------------------------------------------
+;;;; ORG MODE
+;;;; ------------------------------------------------------------------
+
+(defvar my/org-directory "~/org/" "Base directory for all org files.")
+(defvar my/org-roam-directory (expand-file-name "roam/" my/org-directory) "Directory for org-roam files.")
+
+(defun ar/find-org-projects ()
+  "Return a list of all Org files with a 'project' tag for capture."
+  (let* ((builder (consult--grep-builder
+                   (list consult-ripgrep-args
+                         "--files-with-matches"
+                         "--glob=*.org"
+                         "^#\\+filetags:.*:project:.*"
+                         (expand-file-name my/org-directory)))))
+    (mapcar (lambda (file)
+              (list (file-name-nondirectory file) file))
+            (consult--grep-sync builder))))
+
+(defun ar/org-font-setup ()
+  (dolist (face '((org-level-1 . 1.2)
+                  (org-level-2 . 1.1)
+                  (org-level-3 . 1.05)
+                  (org-level-4 . 1.0)
+                  (org-level-5 . 1.1)
+                  (org-level-6 . 1.1)
+                  (org-level-7 . 1.1)
+                  (org-level-8 . 1.1)))
+    (set-face-attribute (car face) nil :font "JetBrainsMono Nerd Font" :weight 'bold :height (cdr face) :slant 'unspecified))
+  (set-face-attribute 'org-tag nil :foreground nil :inherit '(shadow fixed-pitch) :weight 'bold)
+  (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
+  (set-face-attribute 'org-code nil   :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-table nil   :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
+  (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
+  (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch))
+
+(defun ar/org-setup-hook ()
+  "Modes to enable on org-mode start"
+  (org-indent-mode)
+  (visual-line-mode 1)
+  (+org-pretty-mode)
+  (ar/org-font-setup))
+
+(after! org
+  (setq org-directory my/org-directory
+        org-agenda-files '("~/org/inbox.org" "~/org/projects.org" "~/org/habits.org" "~/org/goals.org")
+        org-default-notes-file (expand-file-name "inbox.org" my/org-directory)
+        org-ellipsis " "
+        org-log-done 'time
+        org-log-into-drawer t
+        org-startup-with-inline-images t
+        org-image-actual-width 600
+        org-archive-location (concat (file-name-as-directory (expand-file-name "archive" my/org-directory)) "Archive_%s::")
+        org-auto-align-tags nil
+        org-hide-emphasis-markers t)
+  (add-hook! org-mode #'ar/org-setup-hook))
+
+(use-package! org-tempo
+  :after org
+  :config
+  ;; (setq org-src-window-setup 'split-window-below
+  ;;       org-src-fontify-natively t
+  ;;       org-src-tab-acts-natively t)
+  (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
+  (add-to-list 'org-structure-template-alist '("py" . "src python"))
+  (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp")))
+
+
+(setf (alist-get 'height +org-capture-frame-parameters) 15)
+
+(after! org
+  (setq org-todo-keywords
+        '((sequence "📥 TODO(t)" "⚡ NEXT(n)" "⚙️ PROG(p)" "⏳ WAIT(w@/!)" "|" "✅ DONE(d!)" "❌ CANCEL(c@)")
+          (sequence "📝 PLAN(P)" "🚀 ACTIVE(A)" "⏸️ PAUSED(x)" "|" "🏆 ACHIEVED(a)" "🗑️ DROPPED(D)")))
+  (setq org-todo-keyword-faces
+        '(("📥 TODO" . (:foreground "#f7768e" :weight bold))
+          ("⚡ NEXT" . (:foreground "#ff9e64" :weight bold))
+          ("⚙️ PROG" . (:foreground "#7aa2f7" :weight bold))
+          ("⏳ WAIT" . (:foreground "#e0af68" :weight bold))
+          ("✅ DONE" . (:foreground "#9ece6a" :weight bold))
+          ("❌ CANCEL" . (:foreground "#565f89" :weight bold))
+          ("📝 PLAN" . (:foreground "#73daca" :weight bold))
+          ("🚀 ACTIVE" . (:foreground "#bb9af7" :weight bold))
+          ("⏸️ PAUSED" . (:foreground "#c0caf5" :weight bold))
+          ("🏆 ACHIEVED" . (:foreground "#9ece6a" :weight bold))
+          ("🗑️ DROPPED" . (:foreground "#565f89" :weight bold)))))
+
+(after! org-modern
+  (setq org-modern-star '("◉" "○" "◈" "◇" "◆" "▷")
+        org-modern-hide-stars "· "
+        org-modern-list '((43 . "➤") (45 . "–") (42 . "•"))
+        org-modern-table-vertical 1
+        org-modern-table-horizontal 0.1
+        org-modern-block-name '(("src" "»" "«") ("example" "»" "«") ("quote" "❝" "❞"))
+        org-modern-tag-faces `((:foreground ,(face-attribute 'default :foreground) :weight bold :box (:line-width (1 . -1) :color "#45475a")))
+        org-modern-checkbox '((todo . "☐") (done . "☑") (cancel . "☒") (priority . "⚑") (on . "◉") (off . "○"))))
+
+(after! org-appear
+  (setq org-appear-autoemphasis t
+        org-appear-autolinks t
+        org-appear-autosubmarkers t))
+
+(use-package! org-fragtog :hook (org-mode . org-fragtog-mode))
+(use-package! org-habit :after org)
+
+(after! org-capture
+  (setq org-capture-templates
+        '(("t" "📥 Task" entry (file+headline "~/org/inbox.org" "Tasks")
+           "* 📥 TODO %?\n  :PROPERTIES:\n  :CREATED: %U\n  :END:\n")
+          ("n" "📝 Note" entry (file+headline "~/org/inbox.org" "Notes")
+           "* %? :note:\n  :PROPERTIES:\n  :CREATED: %U\n  :SOURCE: \n  :END:\n")
+          ("j" "📔 Journal" entry (file+olp+datetree "~/org/journal.org")
+           "* %U %?\n")
+          ("m" "🤝 Meeting" entry (file+headline "~/org/inbox.org" "Meetings")
+           "* Meeting: %? :meeting:\n  :PROPERTIES:\n  :CREATED: %U\n  :ATTENDEES: \n  :END:\n** Agenda\n** Notes\n** Action Items\n")
+          ("p" "📝 Project" entry (file+headline "~/org/projects.org" "Projects")
+           "* 📝 PLAN %? :project:\n  :PROPERTIES:\n  :CREATED: %U\n  :GOAL: \n  :DEADLINE: \n  :END:\n** Goals\n** Tasks\n*** 📥 TODO Define project scope\n** Resources\n** Notes\n")
+          ("P" "📌 Project Task" entry
+           (file (lambda ()
+                   (let* ((project-list (ar/find-org-projects))
+                          (project-name (completing-read "Select Project: " project-list)))
+                     (cdr (assoc project-name project-list)))))
+           "* 📥 TODO %?\n  :PROPERTIES:\n  :CREATED: %U\n  :END:\n"
+           :prepend t
+           :headline "Tasks")
+          ("b" "📚 Book" entry (file+headline "~/org/reading.org" "Reading List")
+           "* %? :book:read:\n  :PROPERTIES:\n  :CREATED: %U\n  :AUTHOR: \n  :GENRE: \n  :PAGES: \n  :STARTED: \n  :FINISHED: \n  :RATING: \n  :END:\n** Summary\n** Key Takeaways\n** Quotes\n")
+          ("h" "🔄 Habit" entry (file+headline "~/org/habits.org" "Habits")
+           "* 📥 TODO %? :habit:\n  SCHEDULED: %(format-time-string \"%<<%Y-%m-%d %a .+1d>>\")\n  :PROPERTIES:\n  :CREATED: %U\n  :STYLE: habit\n  :END:\n")
+          ("g" "🎯 Goal" entry (file+headline "~/org/goals.org" "Goals")
+           "* 🎯 GOAL %? :goal:\n  DEADLINE: %(org-read-date nil nil \"+1y\")\n  :PROPERTIES:\n  :CREATED: %U\n  :TYPE: \n  :END:\n** Why this goal?\n** Success criteria\n** Action steps\n*** 📥 TODO Break down into smaller tasks\n** Resources needed\n** Potential obstacles\n** Progress tracking\n"))))
+
+(after! org-roam
+  (setq org-roam-directory my/org-roam-directory
+        org-roam-db-location (expand-file-name ".org-roam.db" org-roam-directory)
+        org-roam-node-display-template (concat "${title:*} " (propertize "${tags:20}" 'face 'org-tag))
+        org-roam-capture-templates
+        '(("d" "default" plain "* %?"
+           :target (file+head "${slug}.org"
+                              "#+title: ${title}\n#+filetags: \n\n")
+           :unnarrowed t)
+          ("p" "project" plain "* Goal\n\n%?\n\n* Tasks\n\n* Notes\n\n* Log\n"
+           :target (file+head "projects/${slug}.org"
+                              "#+title: Project: ${title}\n#+filetags: project\n")
+           :unnarrowed t)
+          ("l" "literature note" plain "* Source\n  - Author: \n  - Title: \n  - Year: \n\n* Summary\n\n%?\n\n* Key Takeaways\n\n* Quotes\n"
+           :target (file+head "literature/${slug}.org"
+                              "#+title: ${title}\n#+filetags: literature\n")
+           :unnarrowed t)
+          ("i" "idea" plain "* %?"
+           :target (file+head "ideas/${slug}.org"
+                              "#+title: ${title}\n#+filetags: idea fleeting\n")
+           :unnarrowed t)
+          ("z" "zettel" plain "* %?\n\n* References\n\n"
+           :target (file+head "zettel/${slug}.org"
+                              "#+title: ${title}\n#+filetags: zettel permanent\n")
+           :unnarrowed t)
+          ("j" "journal" plain "* Log\n\n%?"
+           :target (file+olp+datetree (expand-file-name "journal.org" my/org-roam-directory))
+           :unnarrowed t)))
+  (add-to-list 'display-buffer-alist
+               '("\\*org-roam\\*"
+                 (display-buffer-in-direction)
+                 (direction . right)
+                 (window-width . 0.33)
+                 (window-height . fit-window-to-buffer))))
+
+(use-package! org-roam-ui
+  :after org-roam
+  :config
+  (setq org-roam-ui-sync-theme t
+        org-roam-ui-follow t
+        org-roam-ui-update-on-save t
+        org-roam-ui-open-on-start nil))
+
+(use-package! consult-org-roam
+  :after (consult org-roam)
+  :config (consult-org-roam-mode 1))
+
+(after! org-agenda
+  (setq org-agenda-skip-scheduled-if-done t
+        org-agenda-skip-deadline-if-done t
+        org-agenda-include-deadlines t
+        org-agenda-block-separator 'hr
+        org-agenda-compact-blocks t
+        org-agenda-start-with-log-mode t)
+  (org-super-agenda-mode)
+  (setq org-agenda-custom-commands
+        '(("d" "📅 Dashboard"
+           ((agenda "" ((org-deadline-warning-days 7)
+                        (org-agenda-overriding-header "📅 Agenda")))
+            (todo "⚡ NEXT" ((org-agenda-overriding-header "⚡ Next Tasks")))
+            (tags-todo "project/🚀 ACTIVE" ((org-agenda-overriding-header "🚀 Active Projects")))
+            (tags-todo "+PRIORITY=\"A\"" ((org-agenda-overriding-header "🔥 High Priority")))
+            (todo "⏳ WAIT" ((org-agenda-overriding-header "⏳ Waiting On")))
+            (tags-todo "+habit" ((org-agenda-overriding-header "🔄 Habits")))
+            (stuck "" ((org-agenda-overriding-header "🚫 Stuck Projects")))))
+          ("p" "📋 Projects Overview"
+           ((tags "project" ((org-agenda-overriding-header "📋 All Projects")))))
+          ("g" "🎯 Goals Review"
+           ((tags-todo "goal" ((org-agenda-overriding-header "🎯 Goals"))))))))
+
+(use-package! org-super-agenda
+  :config
+  (setq org-super-agenda-groups
+        '((:name "🔥 Overdue" :deadline past)
+          (:name "📅 Today" :time-grid t :scheduled today)
+          (:name "⚡ Next" :todo "⚡ NEXT")
+          (:name "🔥 Important" :priority "A")
+          (:name "🚀 Active Projects" :tag "project" :todo "ACTIVE")
+          (:name "🎯 Goals" :tag "goal")
+          (:name "🔄 Habits" :tag "habit")
+          (:name "⏳ Waiting" :todo "WAIT")
+          (:discard (:anything t)))))
+
+;;;; ------------------------------------------------------------------
+;;;; PDF & VERSION CONTROL
+;;;; ------------------------------------------------------------------
+
+(after! pdf-tools
+  (setq pdf-view-midnight-colors '("#1a1b26" . "#c0caf5"))
+  (set-face-attribute 'pdf-view-highlight-face nil :background (doom-color 'cyan))
+  (add-hook! 'pdf-view-mode-hook
+    (defun +my/pdf-view-mode-setup ()
+      (auto-revert-mode 1)
+      (pdf-view-continuous-scroll-mode 1)
+      (pdf-view-midnight-mode 1)
+      (pdf-view-fit-width-to-window))))
+
+(use-package! magit-todos :hook (magit-mode . magit-todos-mode))
+(use-package! git-timemachine :after magit)
+(use-package! git-gutter
+  :hook (prog-mode . git-gutter-mode)
+  :custom
+  (git-gutter:update-on-save t)
+  (git-gutter:update-method "idle")
+  :config
+  (map! :nv "]g" #'git-gutter:next-hunk
+        :nv "[g" #'git-gutter:previous-hunk))
+
+;;;; ------------------------------------------------------------------
+;;;; SNIPPETS (YASNIPPET)
+;;;; ------------------------------------------------------------------
+
+(use-package! yasnippet-capf
+  :after cape
+  :config
+  (add-to-list 'completion-at-point-functions #'yasnippet-capf))
+
+
+;;;; ------------------------------------------------------------------
+;;;; MISCELLANEOUS & KEYBINDINGS
+;;;; ------------------------------------------------------------------
+
+(setq forge-owned-accounts '(("aahsnr")))
+
+(use-package! feature-mode :mode "\\.feature$")
+(use-package! systemd :mode "\\.service$")
+
+(map! :leader
+      :desc "Open like spacemacs" "SPC" #'execute-extended-command
+      :prefix ("c" . "compile/cite")
+      "c" '(TeX-command-master :wk "Compile Document")
+      "v" '(TeX-view :wk "View Output")
+      "b" '(citar-insert-citation :wk "Insert Citation")
+      :prefix ("d" . "debug")
+      "d" '(dap-debug :wk "Debug...")
+      "b" '(dap-toggle-breakpoint :wk "Toggle breakpoint")
+      :map python-mode-map
+      :leader
+      :prefix ("c" . "code")
+      "c" '(python-execute-file :wk "Run file")
+      "r" '(dap-python-run-repl :wk "Run project REPL"))
+
