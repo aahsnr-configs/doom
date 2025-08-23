@@ -50,8 +50,8 @@
        (popup
         +all
         +defaults)
-       ; (smooth-scroll
-       ;  +interpolate)     ; So smooth you won't believe it's not butter
+                                        ; (smooth-scroll
+                                        ;  +interpolate)     ; So smooth you won't believe it's not butter
        ;;tabs
        (treemacs
         +lsp)
@@ -98,8 +98,6 @@
        :checkers
        (syntax
         +icons)
-       (spell
-        +hunspell)
        ;;grammar           ; tasing grammar mistake every you make
 
        :tools

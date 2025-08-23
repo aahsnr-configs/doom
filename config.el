@@ -1,22 +1,4 @@
-;;; $DOOMDIR/config.el -*- lexical-binding: t; -*-
-
-;; Place your private configuration here! Remember, you do not need to run 'doom
-;; sync' after modifying this file!
-
-
-;; Some functionality uses this to identify you, e.g. GPG configuration, email
-;; clients, file templates and snippets. It is optional.
-;; (setq user-full-name "John Doe"
-;;       user-mail-address "john@doe.com")
-
-;; Doom exposes five (optional) variables for controlling fonts in Doom:
-;;
-;; - `doom-font' -- the primary font to use
-;; - `doom-variable-pitch-font' -- a non-monospace font (where applicable)
-;; - `doom-big-font' -- used for `doom-big-font-mode'; use this for
-;;   presentations or streaming.
-;; - `doom-symbol-font' -- for symbols
-;; - `doom-serif-font' -- for the `fixed-pitch-serif' face
+;;; -*- lexical-binding: t; -*-
 
 ;;;; ------------------------------------------------------------------
 ;;;; CORE EMACS & USER CONFIGURATION
@@ -79,7 +61,7 @@
 (setq doom-font (font-spec :family "JetBrainsMono Nerd Font" :size 14.5 :weight 'medium)
       doom-variable-pitch-font (font-spec :family "JetBrainsMono Nerd Font" :size 14.5)
       doom-big-font (font-spec :family "JetBrainsMono Nerd Font" :size 26.0)
-      doom-unicode-font (font-spec :family "JetBrainsMono Nerd Font" :size 14.5))
+      doom-symbol-font (font-spec :family "JetBrainsMono Nerd Font" :size 14.5))
 (setq-default line-spacing 0.00)
 
 (add-hook! 'doom-after-init-hook
@@ -131,9 +113,10 @@
       evil-move-beyond-eol t
       evil-want-Y-yank-to-eol t)
 
-(setq evil-normal-state-cursor '(box "#fe8019")
-      evil-insert-state-cursor '(bar "#fb4934")
-      evil-visual-state-cursor '(hollow "#fe8019"))
+;; Use doom-tokyo-night colors
+(setq evil-normal-state-cursor `(box ,(doom-color 'orange))
+      evil-insert-state-cursor `(bar ,(doom-color 'red))
+      evil-visual-state-cursor `(hollow ,(doom-color 'orange)))
 
 (after! evil-escape
   (setq evil-escape-key-sequence "jk"
@@ -146,9 +129,9 @@
 (map! :map evil-normal-state-map
       "j" #'evil-next-visual-line
       "k" #'evil-previous-visual-line
-      "gc" #'evilnc-comment-or-uncomment-lines)
+      "g c" #'evilnc-comment-or-uncomment-lines)
 (map! :map evil-visual-state-map
-      "gc" #'evilnc-comment-or-uncomment-lines)
+      "g c" #'evilnc-comment-or-uncomment-lines)
 
 
 ;;;; ------------------------------------------------------------------
@@ -170,15 +153,13 @@
   :hook (prog-mode . rainbow-delimiters-mode)
   :config
   (custom-set-faces
-   '(rainbow-delimiters-depth-1-face ((t (:foreground "#7aa2f7"))))  ; Blue
-   '(rainbow-delimiters-depth-2-face ((t (:foreground "#bb9af7"))))  ; Magenta
-   '(rainbow-delimiters-depth-3-face ((t (:foreground "#e0af68"))))  ; Yellow
-   '(rainbow-delimiters-depth-4-face ((t (:foreground "#73daca"))))  ; Cyan
-   '(rainbow-delimiters-depth-5-face ((t (:foreground "#f7768e"))))  ; Red
-   '(rainbow-delimiters-depth-6-face ((t (:foreground "#9ece6a"))))  ; Green
-   '(rainbow-delimiters-depth-7-face ((t (:foreground "#ff9e64"))))  ; Orange
-   '(rainbow-delimiters-depth-8-face ((t (:foreground "#c0caf5"))))  ; Foreground
-   '(rainbow-delimiters-depth-9-face ((t (:foreground "#a9b1d6")))))) ; Sub-Foreground
+   `(rainbow-delimiters-depth-1-face ((t (:foreground ,(doom-color 'blue)))))
+   `(rainbow-delimiters-depth-2-face ((t (:foreground ,(doom-color 'magenta)))))
+   `(rainbow-delimiters-depth-3-face ((t (:foreground ,(doom-color 'yellow)))))
+   `(rainbow-delimiters-depth-4-face ((t (:foreground ,(doom-color 'cyan)))))
+   `(rainbow-delimiters-depth-5-face ((t (:foreground ,(doom-color 'red)))))
+   `(rainbow-delimiters-depth-6-face ((t (:foreground ,(doom-color 'green)))))
+   `(rainbow-delimiters-depth-7-face ((t (:foreground ,(doom-color 'orange)))))))
 
 (use-package! buffer-terminator
   :custom
@@ -201,35 +182,6 @@
 (use-package! wgrep
   :config
   (setq wgrep-auto-save-buffer t))
-
-(use-package! jinx
-  :hook ((text-mode . jinx-mode)
-         (prog-mode . jinx-mode)
-         (org-mode . jinx-mode)
-         (markdown-mode . jinx-mode)
-         (git-commit-mode . jinx-mode))
-  :bind (("M-$" . jinx-correct)
-         ("C-M-$" . jinx-languages))
-  :init
-  (defvar my-jinx-ignored-words
-    '("DoomEmacs" "Elisp" "EmacsLisp" "use-package" "tecosaur"
-      "jinx-mode" "prog-mode" "conf-mode" "WIP" "regexp" "Ahsanur"
-      "Rahman" "toc" "LaTeX" "cleverparens" "parens" "dirvish"))
-  :config
-  (setq jinx-languages "en_US")
-  (setq jinx-delay 0.3)
-
-  (push `(t . (,(concat "\\<\\(" (mapconcat #'regexp-quote my-jinx-ignored-words "\\|") "\\)\\>")))
-        jinx-exclude-regexps)
-  (push '(org-mode
-          org-level-1 org-level-2 org-level-3 org-level-4
-          org-level-5 org-level-6 org-level-7 org-level-8
-          org-document-title org-block org-src-block
-          org-meta-line org-table org-link)
-        jinx-exclude-faces)
-  (after! vertico
-    (when (boundp 'vertico-multiform-categories)
-      (add-to-list 'vertico-multiform-categories '(jinx (vertico-grid-annotate . t))))))
 
 ;;;; ------------------------------------------------------------------
 ;;;; VTERM (TERMINAL EMULATOR)
@@ -268,14 +220,14 @@
           "\\*vterm\\*"))
   (setq ibuffer-formats
         '((mark modified read-only " "
-                (icon 4 4 :left :elide)
-                (name 35 35 :left :elide)
-                " "
-                (size-h 9 9 :right :elide)
-                " "
-                (mode 16 16 :left :elide)
-                " "
-                filename-and-process)))
+           (icon 4 4 :left :elide)
+           (name 35 35 :left :elide)
+           " "
+           (size-h 9 9 :right :elide)
+           " "
+           (mode 16 16 :left :elide)
+           " "
+           filename-and-process)))
 
   (defun ar/ibuffer-set-project-groups ()
     "Create and set ibuffer filter groups based on known projects."
@@ -308,8 +260,6 @@
   :config
   (setq dired-open-extensions '(("png" . "imv") ("mp4" . "mpv"))))
 (use-package! dired-git-info)
-(use-package! nerd-icons-dired
-  :hook (dired-mode . nerd-icons-dired-mode))
 (use-package! dired-ranger
   :after dired
   :config
@@ -341,15 +291,15 @@
         "R" #'dired-do-rename
         "X" #'dired-open-file))
 
-; (after! dirvish
-;   (setq dirvish-quick-access-entries
-;         '(("h" "~/" "Home")
-;           ("d" "~/Downloads/" "Downloads")
-;           ("D" "~/Documents/" "Documents")
-;           ("p" "~/Projects/" "Projects")
-;           ("/" "/" "Root")))
-;   (setq dirvish-attributes '(nerd-icons file-time file-size collapse subtree-state vc-state))
-;
+(after! dirvish
+  (setq dirvish-quick-access-entries
+        '(("h" "~/" "Home")
+          ("d" "~/Downloads/" "Downloads")
+          ("D" "~/Documents/" "Documents")
+          ("p" "~/Projects/" "Projects")
+          ("/" "/" "Root")))
+  (setq dirvish-attributes '(nerd-icons file-time file-size collapse subtree-state vc-state)))
+
 ;;;; ------------------------------------------------------------------
 ;;;; ORG MODE
 ;;;; ------------------------------------------------------------------
@@ -412,13 +362,9 @@
 (use-package! org-tempo
   :after org
   :config
-  ;; (setq org-src-window-setup 'split-window-below
-  ;;       org-src-fontify-natively t
-  ;;       org-src-tab-acts-natively t)
   (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
   (add-to-list 'org-structure-template-alist '("py" . "src python"))
   (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp")))
-
 
 (setf (alist-get 'height +org-capture-frame-parameters) 15)
 
@@ -427,17 +373,17 @@
         '((sequence "📥 TODO(t)" "⚡ NEXT(n)" "⚙️ PROG(p)" "⏳ WAIT(w@/!)" "|" "✅ DONE(d!)" "❌ CANCEL(c@)")
           (sequence "📝 PLAN(P)" "🚀 ACTIVE(A)" "⏸️ PAUSED(x)" "|" "🏆 ACHIEVED(a)" "🗑️ DROPPED(D)")))
   (setq org-todo-keyword-faces
-        '(("📥 TODO" . (:foreground "#f7768e" :weight bold))
-          ("⚡ NEXT" . (:foreground "#ff9e64" :weight bold))
-          ("⚙️ PROG" . (:foreground "#7aa2f7" :weight bold))
-          ("⏳ WAIT" . (:foreground "#e0af68" :weight bold))
-          ("✅ DONE" . (:foreground "#9ece6a" :weight bold))
-          ("❌ CANCEL" . (:foreground "#565f89" :weight bold))
-          ("📝 PLAN" . (:foreground "#73daca" :weight bold))
-          ("🚀 ACTIVE" . (:foreground "#bb9af7" :weight bold))
-          ("⏸️ PAUSED" . (:foreground "#c0caf5" :weight bold))
-          ("🏆 ACHIEVED" . (:foreground "#9ece6a" :weight bold))
-          ("🗑️ DROPPED" . (:foreground "#565f89" :weight bold)))))
+        `(("📥 TODO" . (:foreground ,(doom-color 'red) :weight bold))
+          ("⚡ NEXT" . (:foreground ,(doom-color 'orange) :weight bold))
+          ("⚙️ PROG" . (:foreground ,(doom-color 'blue) :weight bold))
+          ("⏳ WAIT" . (:foreground ,(doom-color 'yellow) :weight bold))
+          ("✅ DONE" . (:foreground ,(doom-color 'green) :weight bold))
+          ("❌ CANCEL" . (:foreground ,(doom-color 'comment) :weight bold))
+          ("📝 PLAN" . (:foreground ,(doom-color 'cyan) :weight bold))
+          ("🚀 ACTIVE" . (:foreground ,(doom-color 'magenta) :weight bold))
+          ("⏸️ PAUSED" . (:foreground ,(doom-color 'fg) :weight bold))
+          ("🏆 ACHIEVED" . (:foreground ,(doom-color 'green) :weight bold))
+          ("🗑️ DROPPED" . (:foreground ,(doom-color 'comment) :weight bold)))))
 
 (after! org-modern
   (setq org-modern-star '("◉" "○" "◈" "◇" "◆" "▷")
@@ -455,7 +401,6 @@
         org-appear-autosubmarkers t))
 
 (use-package! org-fragtog :hook (org-mode . org-fragtog-mode))
-(use-package! org-habit :after org)
 
 (after! org-capture
   (setq org-capture-templates
@@ -531,6 +476,20 @@
   :after (consult org-roam)
   :config (consult-org-roam-mode 1))
 
+(use-package! org-super-agenda
+  :hook (org-agenda-mode . org-super-agenda-mode)
+  :config
+  (setq org-super-agenda-groups
+        '((:name "🔥 Overdue" :deadline past)
+          (:name "📅 Today" :time-grid t :scheduled today)
+          (:name "⚡ Next" :todo "⚡ NEXT")
+          (:name "🔥 Important" :priority "A")
+          (:name "🚀 Active Projects" :tag "project" :todo "ACTIVE")
+          (:name "🎯 Goals" :tag "goal")
+          (:name "🔄 Habits" :tag "habit")
+          (:name "⏳ Waiting" :todo "WAIT")
+          (:discard (:anything t)))))
+
 (after! org-agenda
   (setq org-agenda-skip-scheduled-if-done t
         org-agenda-skip-deadline-if-done t
@@ -538,7 +497,6 @@
         org-agenda-block-separator 'hr
         org-agenda-compact-blocks t
         org-agenda-start-with-log-mode t)
-  (org-super-agenda-mode)
   (setq org-agenda-custom-commands
         '(("d" "📅 Dashboard"
            ((agenda "" ((org-deadline-warning-days 7)
@@ -554,25 +512,12 @@
           ("g" "🎯 Goals Review"
            ((tags-todo "goal" ((org-agenda-overriding-header "🎯 Goals"))))))))
 
-(use-package! org-super-agenda
-  :config
-  (setq org-super-agenda-groups
-        '((:name "🔥 Overdue" :deadline past)
-          (:name "📅 Today" :time-grid t :scheduled today)
-          (:name "⚡ Next" :todo "⚡ NEXT")
-          (:name "🔥 Important" :priority "A")
-          (:name "🚀 Active Projects" :tag "project" :todo "ACTIVE")
-          (:name "🎯 Goals" :tag "goal")
-          (:name "🔄 Habits" :tag "habit")
-          (:name "⏳ Waiting" :todo "WAIT")
-          (:discard (:anything t)))))
-
 ;;;; ------------------------------------------------------------------
 ;;;; PDF & VERSION CONTROL
 ;;;; ------------------------------------------------------------------
 
 (after! pdf-tools
-  (setq pdf-view-midnight-colors '("#1a1b26" . "#c0caf5"))
+  (setq pdf-view-midnight-colors (cons (doom-color 'bg) (doom-color 'fg)))
   (set-face-attribute 'pdf-view-highlight-face nil :background (doom-color 'cyan))
   (add-hook! 'pdf-view-mode-hook
     (defun +my/pdf-view-mode-setup ()
@@ -583,14 +528,6 @@
 
 (use-package! magit-todos :hook (magit-mode . magit-todos-mode))
 (use-package! git-timemachine :after magit)
-(use-package! git-gutter
-  :hook (prog-mode . git-gutter-mode)
-  :custom
-  (git-gutter:update-on-save t)
-  (git-gutter:update-method "idle")
-  :config
-  (map! :nv "]g" #'git-gutter:next-hunk
-        :nv "[g" #'git-gutter:previous-hunk))
 
 ;;;; ------------------------------------------------------------------
 ;;;; SNIPPETS (YASNIPPET)
@@ -600,6 +537,40 @@
   :after cape
   :config
   (add-to-list 'completion-at-point-functions #'yasnippet-capf))
+
+
+;;;; ------------------------------------------------------------------
+;;;; SPELL CHECKING
+;;;; ------------------------------------------------------------------
+
+
+(use-package! jinx
+  :hook ((text-mode . jinx-mode)
+         (prog-mode . jinx-mode)
+         (org-mode . jinx-mode)
+         (markdown-mode . jinx-mode)
+         (git-commit-mode . jinx-mode))
+  :bind (("M-$" . jinx-correct)
+         ("C-M-$" . jinx-languages))
+  :init
+  (defvar my-jinx-ignored-words
+    '("DoomEmacs" "Elisp" "EmacsLisp" "use-package" "tecosaur" "ibuffer" "vterm" "jinx-mode" "prog-mode" "conf-mode" "WIP" "regexp" "Ahsanur"
+      "Rahman" "toc" "LaTeX" "cleverparens" "parens" "dirvish"))
+  :config
+  (setq jinx-languages "en_US")
+  (setq jinx-delay 0.3)
+
+  (push `(t . (,(concat "\\<\\(" (mapconcat #'regexp-quote my-jinx-ignored-words "\\|") "\\)\\>")))
+        jinx-exclude-regexps)
+  (push '(org-mode
+          org-level-1 org-level-2 org-level-3 org-level-4
+          org-level-5 org-level-6 org-level-7 org-level-8
+          org-document-title org-block org-src-block
+          org-meta-line org-table org-link)
+        jinx-exclude-faces)
+  (after! vertico
+    (when (boundp 'vertico-multiform-categories)
+      (add-to-list 'vertico-multiform-categories '(jinx (vertico-grid-annotate . t))))))
 
 
 ;;;; ------------------------------------------------------------------
@@ -625,4 +596,3 @@
       :prefix ("c" . "code")
       "c" '(python-execute-file :wk "Run file")
       "r" '(dap-python-run-repl :wk "Run project REPL"))
-
