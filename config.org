@@ -1,10 +1,9 @@
 #+TITLE: Doom Emacs Configuration
 #+AUTHOR: Ahsanur Rahman
-#+PROPERTY: header-args:emacs-lisp
+#+PROPERTY: header-args:emacs-lisp :tangle config.el
 
 * Core Emacs & User Configuration
 This section sets up fundamental user information and core Emacs behavior. These settings provide a baseline for a stable and personalized experience.
-
 #+begin_src emacs-lisp
 (setq user-full-name "Ahsanur Rahman"
       user-mail-address "ahsanur041@proton.me")
@@ -43,7 +42,6 @@ This section sets up fundamental user information and core Emacs behavior. These
 
 * UI & Theming
 This section configures the entire visual experience, from the color theme and fonts to the modeline and line numbers.
-
 #+begin_src emacs-lisp
 (use-package! doom-themes
   :custom
@@ -54,11 +52,7 @@ This section configures the entire visual experience, from the color theme and f
   (load-theme 'doom-tokyo-night t)
   (doom-themes-visual-bell-config)
   (doom-themes-treemacs-config)
-  (doom-themes-org-config)
-  ;; Set distinct colors for bold and italic
-  (custom-set-faces
-   '(bold ((t (:foreground "#7aa2f7" :weight bold))))
-   '(italic ((t (:foreground "#bb9af7" :slant italic))))))
+  (doom-themes-org-config))
 
 (setq doom-font (font-spec :family "JetBrainsMono Nerd Font" :size 14.5 :weight 'medium)
       doom-variable-pitch-font (font-spec :family "JetBrainsMono Nerd Font" :size 14.5)
@@ -113,11 +107,31 @@ This section configures the entire visual experience, from the color theme and f
    `(rainbow-delimiters-depth-5-face ((t (:foreground ,(doom-color 'red)))))
    `(rainbow-delimiters-depth-6-face ((t (:foreground ,(doom-color 'green)))))
    `(rainbow-delimiters-depth-7-face ((t (:foreground ,(doom-color 'orange)))))))
+
+;; This is the correct, robust way to apply face customizations.
+(custom-set-faces
+ '(bold ((t (:foreground "#7aa2f7" :weight bold))))
+ '(italic ((t (:foreground "#bb9af7" :slant italic))))
+ '(org-level-1 ((t (:inherit default :weight bold :height 1.2))))
+ '(org-level-2 ((t (:inherit default :weight bold :height 1.1))))
+ '(org-level-3 ((t (:inherit default :weight bold :height 1.05))))
+ '(org-level-4 ((t (:inherit default :weight bold :height 1.0))))
+ '(org-level-5 ((t (:inherit default :weight bold :height 1.1))))
+ '(org-level-6 ((t (:inherit default :weight bold :height 1.1))))
+ '(org-level-7 ((t (:inherit default :weight bold :height 1.1))))
+ '(org-level-8 ((t (:inherit default :weight bold :height 1.1))))
+ '(org-tag ((t (:inherit (shadow fixed-pitch) :weight bold))))
+ '(org-block ((t (:inherit fixed-pitch))))
+ '(org-code ((t (:inherit (shadow fixed-pitch)))))
+ '(org-table ((t (:inherit fixed-pitch))))
+ '(org-verbatim ((t (:inherit (shadow fixed-pitch)))))
+ '(org-special-keyword ((t (:inherit (font-lock-comment-face fixed-pitch)))))
+ '(org-meta-line ((t (:inherit (font-lock-comment-face fixed-pitch)))))
+ '(org-checkbox ((t (:inherit fixed-pitch)))))
 #+end_src
 
 * Evil (Vim Emulation)
-These settings customize Evil mode to better suit the workflow, including cursor appearance, escape behavior, and keybindings. Most evil extensions are omitted, as Doom provides excellent defaults.
-
+These settings customize Evil mode to better suit the workflow, including cursor appearance, escape behavior, and keybindings.
 #+begin_src emacs-lisp
 (setq evil-v$-excludes-newline t
       evil-search-wrap nil
@@ -146,8 +160,7 @@ These settings customize Evil mode to better suit the workflow, including cursor
 #+end_src
 
 * Completion Framework
-This section configures the Vertico/Corfu completion UI, ensuring a fast and responsive experience.
-
+This section configures the Vertico/Corfu completion UI.
 #+begin_src emacs-lisp
 (after! vertico
   (setq vertico-count 10))
@@ -155,22 +168,26 @@ This section configures the Vertico/Corfu completion UI, ensuring a fast and res
 (after! corfu
   (setq corfu-auto-resize nil
         corfu-auto-delay 0.1))
+
+;; This hook resolves the race condition between `org-tempo` and `corfu`.
+(defun +org-corfu-setup-h ()
+  "Configure Corfu to play nicely with Org Tempo."
+  (setq-local corfu-quit-at-boundary t))
+(add-hook 'org-mode-hook #'+org-corfu-setup-h)
 #+end_src
 
 * Project & File Management
-This section configures tools for managing projects, buffers, and files, including Dired (the file manager) and Ibuffer (the buffer list).
-
+This section configures tools for managing projects, buffers, and files.
+** Core Tools
 #+begin_src emacs-lisp
-;; Automatically clean up inactive buffers to reduce clutter.
 (use-package! buffer-terminator
   :custom
   (buffer-terminator-verbose nil)
-  (buffer-terminator-inactivity-timeout (* 30 60)) ; 30 minutes
-  (buffer-terminator-interval (* 10 60)) ; 10 minutes
+  (buffer-terminator-inactivity-timeout (* 30 60))
+  (buffer-terminator-interval (* 10 60))
   :config
   (buffer-terminator-mode 1))
 
-;; An enhanced help interface.
 (use-package! helpful
   :bind
   ([remap describe-command] . helpful-command)
@@ -181,12 +198,13 @@ This section configures tools for managing projects, buffers, and files, includi
   :custom
   (helpful-max-buffers 7))
 
-;; Writable grep buffers.
 (use-package! wgrep
   :config
   (setq wgrep-auto-save-buffer t))
+#+end_src
 
-;; Configuration for the Vterm terminal emulator.
+** Vterm (Terminal Emulator)
+#+begin_src emacs-lisp
 (setq vterm-kill-buffer-on-exit t)
 (defun +my/vterm-force-kill-current-buffer ()
   (interactive)
@@ -198,8 +216,10 @@ This section configures tools for managing projects, buffers, and files, includi
       :desc "Toggle vterm locally"  "v t" #'+vterm/toggle
       :desc "Open vterm buffer locally" "v T" #'+vterm/here
       :desc "Force kill current vterm buffer" "o k" #'+my/vterm-force-kill-current-buffer)
+#+end_src
 
-;; Ibuffer configuration for project-based buffer grouping.
+** Ibuffer (Buffer Management)
+#+begin_src emacs-lisp
 (use-package! nerd-icons-ibuffer :after ibuffer)
 (after! ibuffer
   (setq ibuffer-never-show-regexps
@@ -215,7 +235,6 @@ This section configures tools for managing projects, buffers, and files, includi
            filename-and-process)))
 
   (defun ar/ibuffer-set-project-groups ()
-    "Create and set ibuffer filter groups based on known projects."
     (let ((groups '()))
       (when (fboundp 'projectile-project-p)
         (dolist (proj (projectile-relevant-known-projects))
@@ -236,8 +255,10 @@ This section configures tools for managing projects, buffers, and files, includi
               (ar/ibuffer-set-project-groups)
               (ibuffer-do-sort-by-last-access-time)
               (ibuffer-update nil t))))
+#+end_src
 
-;; Dired (file manager) enhancements.
+** Dired (File Management)
+#+begin_src emacs-lisp
 (use-package! dired-open
   :config
   (setq dired-open-extensions '(("png" . "imv") ("mp4" . "mpv"))))
@@ -283,50 +304,40 @@ This section configures tools for managing projects, buffers, and files, includi
 
 * Development Environment
 This section configures the core IDE features: LSP for code intelligence, DAP for debugging, Flycheck for linting, and Doom's native formatter.
-
 ** Linting, Formatting, and Tree-sitter
 #+begin_src emacs-lisp
-;; Use sideline for a cleaner, inline display of flycheck diagnostics.
 (use-package! sideline-flycheck
   :hook (flycheck-mode . sideline-mode)
   :init
   (setq sideline-flycheck-display-mode 'point)
   (setq sideline-backends-right '(sideline-flycheck)))
 
-;; Configure evil-textobj-tree-sitter for advanced, syntax-aware text objects.
 (use-package! evil-textobj-tree-sitter
   :after evil
   :config
+  (define-key evil-outer-text-objects-map "f" (evil-textobj-tree-sitter-get-textobj "function.outer"))
+  (define-key evil-inner-text-objects-map "f" (evil-textobj-tree-sitter-get-textobj "function.inner"))
   (map! :map evil-normal-state-map
         "]f" #'(lambda () (interactive) (evil-textobj-tree-sitter-goto-textobj "function.outer"))
         "[f" #'(lambda () (interactive) (evil-textobj-tree-sitter-goto-textobj "function.outer" t))
         "]F" #'(lambda () (interactive) (evil-textobj-tree-sitter-goto-textobj "function.outer" nil t))
         "[F" #'(lambda () (interactive) (evil-textobj-tree-sitter-goto-textobj "function.outer" t t))))
 
-;; This is the centralized, idiomatic Doom way to configure auto-formatters.
-(set-formatter! 'ruff "ruff" "format" "-")
-(set-formatter! 'latexindent "latexindent" "-g" "/dev/null")
-(set-formatter! 'prettier "prettier" "--prose-wrap" "always")
+(set-formatter! 'ruff '("ruff" "format" "-"))
+(set-formatter! 'latexindent '("latexindent" "-g" "/dev/null"))
+(set-formatter! 'prettier '("prettier" "--prose-wrap" "always"))
 #+end_src
 
 ** Language: Python
 This section provides a complete IDE experience for Python, including LSP, debugging, and a comprehensive linting setup.
-
 #+begin_src emacs-lisp
-;; Prioritize our own Flycheck setup over LSP diagnostics from pyright.
 (after! lsp-pyright
   (setq lsp-pyright-disable-language-service t
         lsp-pyright-disable-organize-imports t)
   (set-lsp-priority! 'pyright -1))
 
-;; Chain multiple powerful linters together for comprehensive feedback.
-(flycheck-add-checker-preset 'python-my-checkers
-  '(python-ruff python-mypy python-bandit)
-  :next-checkers '((python-ruff . python-mypy)
-                   (python-mypy . python-bandit)))
-(add-hook 'python-mode-hook #'flycheck-select-checker-preset 'python-my-checkers)
+(setq-hook! 'python-mode-hook flycheck-checkers '(ruff mypy bandit))
 
-;; Define debug templates for DAP (Debug Adapter Protocol).
 (after! dap-mode
   (dap-register-debug-template
    "Python: Debug Current File"
@@ -346,7 +357,6 @@ This section provides a complete IDE experience for Python, including LSP, debug
 
 ** Language: Jupyter
 This configures Org mode's integration with Jupyter notebooks for interactive Python sessions.
-
 #+begin_src emacs-lisp
 (after! jupyter
   (setq jupyter-python-set-repl-for-current-buffer t
@@ -369,7 +379,6 @@ This configures Org mode's integration with Jupyter notebooks for interactive Py
 
 ** Language: Org Mode
 This is the heart of the configuration for Org mode, setting up everything from file paths and appearance to task management and Roam.
-
 #+begin_src emacs-lisp
 (defvar my/org-directory "~/org/" "Base directory for all org files.")
 (defvar my/org-roam-directory (expand-file-name "roam/" my/org-directory) "Directory for org-roam files.")
@@ -386,26 +395,7 @@ This is the heart of the configuration for Org mode, setting up everything from 
               (list (file-name-nondirectory file) file))
             (consult--grep-sync builder))))
 
-(defun ar/org-font-setup ()
-  (dolist (face '((org-level-1 . 1.2) (org-level-2 . 1.1) (org-level-3 . 1.05)
-                  (org-level-4 . 1.0) (org-level-5 . 1.1) (org-level-6 . 1.1)
-                  (org-level-7 . 1.1) (org-level-8 . 1.1)))
-    (set-face-attribute (car face) nil :font "JetBrainsMono Nerd Font" :weight 'bold :height (cdr face) :slant 'unspecified))
-  (set-face-attribute 'org-tag nil :foreground nil :inherit '(shadow fixed-pitch) :weight 'bold)
-  (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
-  (set-face-attribute 'org-code nil   :inherit '(shadow fixed-pitch))
-  (set-face-attribute 'org-table nil   :inherit '(shadow fixed-pitch))
-  (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
-  (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
-  (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
-  (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch))
-
-(defun ar/org-setup-hook ()
-  "Modes to enable on org-mode start"
-  (org-indent-mode)
-  (visual-line-mode 1)
-  (+org-pretty-mode)
-  (ar/org-font-setup))
+(setf (alist-get 'height +org-capture-frame-parameters) 15)
 
 (after! org
   (setq org-directory my/org-directory
@@ -418,20 +408,8 @@ This is the heart of the configuration for Org mode, setting up everything from 
         org-image-actual-width 600
         org-archive-location (concat (file-name-as-directory (expand-file-name "archive" my/org-directory)) "Archive_%s::")
         org-auto-align-tags nil
-        org-hide-emphasis-markers t)
-  (add-hook! org-mode #'ar/org-setup-hook))
-
-(use-package! org-tempo
-  :after org
-  :config
-  (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
-  (add-to-list 'org-structure-template-alist '("py" . "src python"))
-  (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp")))
-
-(setf (alist-get 'height +org-capture-frame-parameters) 15)
-
-(after! org
-  (setq org-todo-keywords
+        org-hide-emphasis-markers t
+        org-todo-keywords
         '((sequence "📥 TODO(t)" "⚡ NEXT(n)" "⚙️ PROG(p)" "⏳ WAIT(w@/!)" "|" "✅ DONE(d!)" "❌ CANCEL(c@)")
           (sequence "📝 PLAN(P)" "🚀 ACTIVE(A)" "⏸️ PAUSED(x)" "|" "🏆 ACHIEVED(a)" "🗑️ DROPPED(D)")))
   (setq org-todo-keyword-faces
@@ -446,6 +424,15 @@ This is the heart of the configuration for Org mode, setting up everything from 
           ("⏸️ PAUSED" . (:foreground ,(doom-color 'fg) :weight bold))
           ("🏆 ACHIEVED" . (:foreground ,(doom-color 'green) :weight bold))
           ("🗑️ DROPPED" . (:foreground ,(doom-color 'comment) :weight bold)))))
+
+  (add-hook! org-mode #'(lambda () (org-indent-mode) (visual-line-mode 1) (+org-pretty-mode))))
+
+(use-package org-tempo
+  :after org
+  :config
+    (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
+    (add-to-list 'org-structure-template-alist '("py" . "src python"))
+    (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp")))
 
 (after! org-modern
   (setq org-modern-star '("◉" "○" "◈" "◇" "◆" "▷")
@@ -462,7 +449,11 @@ This is the heart of the configuration for Org mode, setting up everything from 
         org-appear-autolinks t
         org-appear-autosubmarkers t))
 
-(use-package! org-fragtog :hook (org-mode . org-fragtog-mode))
+(use-package! org-fragtog
+  :commands org-fragtog-toggle)
+(map! :leader
+      :map org-mode-map
+      :desc "Toggle LaTeX fragments" "m f" #'org-fragtog-toggle)
 
 (after! org-capture
   (setq org-capture-templates
@@ -560,24 +551,23 @@ This is the heart of the configuration for Org mode, setting up everything from 
         org-agenda-compact-blocks t
         org-agenda-start-with-log-mode t)
   (setq org-agenda-custom-commands
-        '(("d" "📅 Dashboard"
+        '(("d" "Dashboard"
            ((agenda "" ((org-deadline-warning-days 7)
-                        (org-agenda-overriding-header "📅 Agenda")))
-            (todo "⚡ NEXT" ((org-agenda-overriding-header "⚡ Next Tasks")))
-            (tags-todo "project/🚀 ACTIVE" ((org-agenda-overriding-header "🚀 Active Projects")))
-            (tags-todo "+PRIORITY=\"A\"" ((org-agenda-overriding-header "🔥 High Priority")))
-            (todo "⏳ WAIT" ((org-agenda-overriding-header "⏳ Waiting On")))
-            (tags-todo "+habit" ((org-agenda-overriding-header "🔄 Habits")))
-            (stuck "" ((org-agenda-overriding-header "🚫 Stuck Projects")))))
-          ("p" "📋 Projects Overview"
-           ((tags "project" ((org-agenda-overriding-header "📋 All Projects")))))
-          ("g" "🎯 Goals Review"
-           ((tags-todo "goal" ((org-agenda-overriding-header "🎯 Goals"))))))))
+                        (org-agenda-overriding-header "Agenda")))
+            (todo "NEXT" ((org-agenda-overriding-header "Next Tasks")))
+            (tags-todo "project/ACTIVE" ((org-agenda-overriding-header "Active Projects")))
+            (tags-todo "+PRIORITY=\"A\"" ((org-agenda-overriding-header "High Priority")))
+            (todo "WAIT" ((org-agenda-overriding-header "Waiting On")))
+            (tags-todo "+habit" ((org-agenda-overriding-header "Habits")))
+            (stuck "" ((org-agenda-overriding-header "Stuck Projects")))))
+          ("p" "Projects Overview"
+           ((tags "project" ((org-agenda-overriding-header "All Projects")))))
+          ("g" "Goals Review"
+           ((tags-todo "goal" ((org-agenda-overriding-header "Goals"))))))))
 #+end_src
 
 ** Language: LaTeX & Citations
 This configures the scientific writing environment for LaTeX, including the Tectonic compiler, LSP, and a citation system integrated with Org Roam.
-
 #+begin_src emacs-lisp
 (after! tex
   (setq TeX-engine 'tectonic)
@@ -614,7 +604,6 @@ This configures the scientific writing environment for LaTeX, including the Tect
 
 ** Language: Markdown
 This section sets up a rich Markdown environment with live preview and a table of contents.
-
 #+begin_src emacs-lisp
 (use-package! md-roam
   :after markdown-mode
@@ -637,8 +626,7 @@ This section sets up a rich Markdown environment with live preview and a table o
 
 * Miscellaneous
 This section contains version control settings, snippet configurations, spell checking, and final keybindings.
-
-** Version Control
+** Version Control & PDF
 #+begin_src emacs-lisp
 (after! pdf-tools
   (setq pdf-view-midnight-colors (cons (doom-color 'bg) (doom-color 'fg)))
@@ -655,7 +643,13 @@ This section contains version control settings, snippet configurations, spell ch
 #+end_src
 
 ** Snippets (Yasnippet)
+This section configures the Yasnippet snippet system. It ensures the custom snippets directory exists, integrates snippets with the completion framework, and makes LaTeX snippets available in Org mode.
 #+begin_src emacs-lisp
+;; Ensure the custom snippets directory exists to prevent startup errors.
+(let ((snippets-dir (expand-file-name "snippets" doom-private-dir)))
+  (unless (file-directory-p snippets-dir)
+    (make-directory snippets-dir t)))
+
 ;; Custom user snippets are placed in `~/.config/doom/snippets/`.
 ;; For example, to create a new python snippet, create the file:
 ;; `~/.config/doom/snippets/python-mode/my-snippet.yas`
@@ -708,16 +702,21 @@ This section contains version control settings, snippet configurations, spell ch
 (use-package! feature-mode :mode "\\.feature$")
 (use-package! systemd :mode "\\.service$")
 
+;; Global leader keys for general commands, compiling, and debugging
 (map! :leader
       :desc "Open like spacemacs" "SPC" #'execute-extended-command
+      ;; Compile/Cite prefix
       :prefix ("c" . "compile/cite")
       "c" '(TeX-command-master :wk "Compile Document")
       "v" '(TeX-view :wk "View Output")
       "b" '(citar-insert-citation :wk "Insert Citation")
+      ;; Debug prefix
       :prefix ("d" . "debug")
       "d" '(dap-debug :wk "Debug...")
-      "b" '(dap-toggle-breakpoint :wk "Toggle breakpoint")
-      :map python-mode-map
+      "b" '(dap-toggle-breakpoint :wk "Toggle breakpoint"))
+
+;; Python-specific leader keys
+(map! :map python-mode-map
       :leader
       :prefix ("c" . "code")
       "c" '(python-execute-file :wk "Run file")
