@@ -243,15 +243,6 @@
         "R" #'dired-do-rename
         "X" #'dired-open-file))
 
-(after! dirvish
-  (setq dirvish-quick-access-entries
-        '(("h" "~/" "Home")
-          ("d" "~/Downloads/" "Downloads")
-          ("D" "~/Documents/" "Documents")
-          ("p" "~/Projects/" "Projects")
-          ("/" "/" "Root")))
-  (setq dirvish-attributes '(nerd-icons file-time file-size collapse subtree-state vc-state)))
-
 ;; Use sideline for a cleaner, inline display of flycheck diagnostics.
 (use-package! sideline-flycheck
   :hook (flycheck-mode . sideline-mode)
@@ -270,9 +261,9 @@
         "[F" #'(lambda () (interactive) (evil-textobj-tree-sitter-goto-textobj "function.outer" t t))))
 
 ;; This is the centralized, idiomatic Doom way to configure auto-formatters.
-(set-formatter! 'ruff "ruff" "format" "-")
-(set-formatter! 'latexindent "latexindent" "-g" "/dev/null")
-(set-formatter! 'prettier "prettier" "--prose-wrap" "always")
+(set-formatter! 'ruff '("ruff" "format" "-"))
+(set-formatter! 'latexindent '("latexindent" "-g" "/dev/null"))
+(set-formatter! 'prettier '("prettier" "--prose-wrap" "always"))
 
 ;; Prioritize our own Flycheck setup over LSP diagnostics from pyright.
 (after! lsp-pyright
@@ -281,11 +272,12 @@
   (set-lsp-priority! 'pyright -1))
 
 ;; Chain multiple powerful linters together for comprehensive feedback.
-(flycheck-add-checker-preset 'python-my-checkers
-  '(python-ruff python-mypy python-bandit)
-  :next-checkers '((python-ruff . python-mypy)
-                   (python-mypy . python-bandit)))
-(add-hook 'python-mode-hook #'flycheck-select-checker-preset 'python-my-checkers)
+(after! flycheck
+  (flycheck-add-checker-preset 'python-my-checkers
+    '(python-ruff python-mypy python-bandit)
+    :next-checkers '((python-ruff . python-mypy)
+                     (python-mypy . python-bandit)))
+  (add-hook 'python-mode-hook (lambda () (flycheck-select-checker-preset 'python-my-checkers))))
 
 ;; Define debug templates for DAP (Debug Adapter Protocol).
 (after! dap-mode
@@ -634,16 +626,21 @@
 (use-package! feature-mode :mode "\\.feature$")
 (use-package! systemd :mode "\\.service$")
 
+;; Global leader keys for general commands, compiling, and debugging
 (map! :leader
       :desc "Open like spacemacs" "SPC" #'execute-extended-command
+      ;; Compile/Cite prefix
       :prefix ("c" . "compile/cite")
       "c" '(TeX-command-master :wk "Compile Document")
       "v" '(TeX-view :wk "View Output")
       "b" '(citar-insert-citation :wk "Insert Citation")
+      ;; Debug prefix
       :prefix ("d" . "debug")
       "d" '(dap-debug :wk "Debug...")
-      "b" '(dap-toggle-breakpoint :wk "Toggle breakpoint")
-      :map python-mode-map
+      "b" '(dap-toggle-breakpoint :wk "Toggle breakpoint"))
+
+;; Python-specific leader keys
+(map! :map python-mode-map
       :leader
       :prefix ("c" . "code")
       "c" '(python-execute-file :wk "Run file")
