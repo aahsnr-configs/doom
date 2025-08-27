@@ -272,12 +272,22 @@
   (set-lsp-priority! 'pyright -1))
 
 ;; Chain multiple powerful linters together for comprehensive feedback.
-(after! flycheck
-  (flycheck-add-checker-preset 'python-my-checkers
-    '(python-ruff python-mypy python-bandit)
-    :next-checkers '((python-ruff . python-mypy)
-                     (python-mypy . python-bandit)))
-  (add-hook 'python-mode-hook (lambda () (flycheck-select-checker-preset 'python-my-checkers))))
+(defun ar/init-python-flycheck ()
+  "Set up my custom python flycheck chain.
+
+This function is hooked to `python-mode-hook`. By the time it runs,
+flycheck and its functions will be loaded. We define the preset here,
+but only if it doesn't already exist, to avoid redefining it for
+every new python buffer."
+  (unless (flycheck-checker-preset-exists-p 'python-my-checkers)
+    (flycheck-add-checker-preset 'python-my-checkers
+      '(python-ruff python-mypy python-bandit)
+      :next-checkers '((python-ruff . python-mypy)
+                       (python-mypy . python-bandit))))
+  ;; Select the preset for the current buffer.
+  (flycheck-select-checker-preset 'python-my-checkers))
+
+(add-hook 'python-mode-hook #'ar/init-python-flycheck)
 
 ;; Define debug templates for DAP (Debug Adapter Protocol).
 (after! dap-mode
