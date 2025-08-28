@@ -84,7 +84,6 @@
 ;; --- Markdown ---
 (package! md-roam :recipe (:host github :repo "nobiot/md-roam"))
 (package! imenu-list)
-(package! flymake-markdownlint)
 
 ;; --- Version Control ---
 (package! magit-todos)

@@ -1,5 +1,17 @@
 # TODOS
 
+## High Priority
+
+- [ ] Remove completion powered by emacs-jupyter
+- [ ] Add polymode to support python-ts-mode
+- [ ] Somehow make python-ts-mode with jupyter-python
+- [ ]
+
+- [ ] Setup org-mode fonts from elken-doom; use example from [ArtemSmaznov](https://github.com/ArtemSmaznov/dotfiles-doom-emacs?tab=readme-ov-file#global-options)
+
+- [ ] Add (variable-pitch-mode 1) to org-hook
+- [ ] Add dirvish config from [ArtemSmaznov](https://github.com/ArtemSmaznov/dotfiles-doom-emacs?tab=readme-ov-file#global-options)
+
 - [ ] Remove trailing whitespace automatically
 - [ ] Define more snippets using the .yas-snippet
 - [ ] Add neovim like tabs later: vim-tab-bar
