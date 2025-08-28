@@ -26,11 +26,11 @@
                                 (system-name)))))
 
 ;; Mitigate performance issues on Wayland/PGTK builds
-(when (fboundp 'pgtk-use-im-context)
-  (add-hook 'after-make-frame-functions
-            (lambda (frame)
-              (with-selected-frame frame
-                (pgtk-use-im-context nil)))))
+;; (when (fboundp 'pgtk-use-im-context)
+;;   (add-hook 'after-make-frame-functions
+;;             (lambda (frame)
+;;               (with-selected-frame frame
+;;                 (pgtk-use-im-context nil)))))
 
 (use-package! doom-themes
   :defer t
@@ -51,7 +51,8 @@
       doom-variable-pitch-font (font-spec :family "JetBrainsMono Nerd Font" :size 14.5)
       doom-big-font (font-spec :family "JetBrainsMono Nerd Font" :size 26.0)
       doom-symbol-font (font-spec :family "JetBrainsMono Nerd Font" :size 14.5))
-(setq-default line-spacing 0.00)
+
+(setq-default line-spacing 0.02)
 
 (add-hook! 'doom-after-init-hook
   (defun +my/setup-font-faces ()
@@ -237,7 +238,9 @@
         "R" #'dired-do-rename
         "X" #'dired-open-file))
 
-;; Use sideline for a cleaner, inline display of flycheck diagnostics.
+(use-package! treesit-fold
+  :hook (prog-mode . treesit-fold-mode))
+
 ;; Configure evil-textobj-tree-sitter for advanced, syntax-aware text objects.
 (use-package! evil-textobj-tree-sitter
   :after evil
@@ -253,46 +256,20 @@
 (set-formatter! 'latexindent '("latexindent" "-g" "/dev/null"))
 (set-formatter! 'prettier '("prettier" "--prose-wrap" "always"))
 
-;; Prioritize our own Flycheck setup over LSP diagnostics from pyright.
-(after! lsp-pyright
-  (setq lsp-pyright-disable-language-service t
-        lsp-pyright-disable-organize-imports t)
-  (set-lsp-priority! 'pyright -1))
+(use-package! eldoc-box
+  :hook (eglot-managed-mode . eldoc-box-hover-at-point-mode))
 
-;; Chain multiple powerful linters together for comprehensive feedback.
-(defun ar/init-python-flycheck ()
-  "Set up my custom python flycheck chain.
+;; General flymake configuration
+(after! flymake
+  (setq flymake-log-level 2)
+  (map! :map flymake-mode-map
+        :leader
+        :prefix ("e" . "errors")
+        "l" #'flymake-show-buffer-diagnostics
+        "n" #'flymake-goto-next-error
+        "p" #'flymake-goto-prev-error))
 
-This function is hooked to `python-mode-hook`. By the time it runs,
-flycheck and its functions will be loaded. We define the preset here,
-but only if it doesn't already exist, to avoid redefining it for
-every new python buffer."
-  (unless (flycheck-checker-preset-exists-p 'python-my-checkers)
-    (flycheck-add-checker-preset 'python-my-checkers
-      '(python-ruff python-mypy python-bandit)
-      :next-checkers '((python-ruff . python-mypy)
-                       (python-mypy . python-bandit))))
-  ;; Select the preset for the current buffer.
-  (flycheck-select-checker-preset 'python-my-checkers))
 
-(add-hook 'python-mode-hook #'ar/init-python-flycheck)
-
-;; Define debug templates for DAP (Debug Adapter Protocol).
-(after! dap-mode
-  (dap-register-debug-template
-   "Python: Debug Current File"
-   (list :type "python" :request "launch" :name "DAP: Py - File"
-         :program "${file}" :console "integratedTerminal"))
-  (dap-register-debug-template
-   "Python: Debug File w/ Args"
-   (list :type "python" :request "launch" :name "DAP: Py - File w/ Args"
-         :program "${file}" :args (split-string (read-string "Arguments: "))
-         :console "integratedTerminal"))
-  (dap-register-debug-template
-   "Python: Debug Pytest File"
-   (list :type "python" :request "launch" :name "DAP: Py - Pytest File"
-         :module "pytest" :args ["-s" "-v" "${file}"]
-         :console "integratedTerminal")))
 
 (after! jupyter
   (setq jupyter-python-set-repl-for-current-buffer t
@@ -305,11 +282,6 @@ every new python buffer."
 (after! ob-jupyter
   (org-babel-do-load-languages 'org-babel-load-languages '((jupyter . t)))
   (org-babel-jupyter-override-src-block "python")
-  (setq org-babel-default-header-args:jupyter-python
-        '((:results . "replace drawer")
-          (:async . "yes")
-          (:session . "python")
-          (:kernel . "python3")))
   (add-hook 'org-babel-after-execute-hook 'org-redisplay-inline-images))
 
 (defvar my/org-directory "~/org/" "Base directory for all org files.")
@@ -587,34 +559,34 @@ every new python buffer."
 ;; Make LaTeX snippets available in Org mode for scientific writing.
 (add-hook 'org-mode-hook (lambda () (setq-local yas-parents '(latex-mode))))
 
-(use-package! jinx
-  :hook ((text-mode . jinx-mode)
-         (prog-mode . jinx-mode)
-         (org-mode . jinx-mode)
-         (markdown-mode . jinx-mode)
-         (git-commit-mode . jinx-mode))
-  :bind (("M-$" . jinx-correct)
-         ("C-M-$" . jinx-languages))
-  :init
-  (defvar my-jinx-ignored-words
-    '("DoomEmacs" "Elisp" "EmacsLisp" "use-package" "tecosaur" "ibuffer" "vterm"
-      "jinx-mode" "prog-mode" "conf-mode" "WIP" "regexp" "Ahsanur" "Rahman"
-      "toc" "LaTeX" "cleverparens" "parens" "dirvish"))
-  :config
-  (setq jinx-languages "en_US")
-  (setq jinx-delay 0.3)
+;; (use-package! jinx
+;;   :hook ((text-mode . jinx-mode)
+;;          (prog-mode . jinx-mode)
+;;          (org-mode . jinx-mode)
+;;          (markdown-mode . jinx-mode)
+;;          (git-commit-mode . jinx-mode))
+;;   :bind (("M-$" . jinx-correct)
+;;          ("C-M-$" . jinx-languages))
+;;   :init
+;;   (defvar my-jinx-ignored-words
+;;     '("DoomEmacs" "Elisp" "EmacsLisp" "use-package" "tecosaur" "ibuffer" "vterm"
+;;       "jinx-mode" "prog-mode" "conf-mode" "WIP" "regexp" "Ahsanur" "Rahman"
+;;       "toc" "LaTeX" "cleverparens" "parens" "dirvish"))
+;;   :config
+;;   (setq jinx-languages "en_US")
+;;   (setq jinx-delay 0.3)
 
-  (push `(t . (,(concat "\\<\\(" (mapconcat #'regexp-quote my-jinx-ignored-words "\\|") "\\)\\>")))
-        jinx-exclude-regexps)
-  (push '(org-mode
-          org-level-1 org-level-2 org-level-3 org-level-4
-          org-level-5 org-level-6 org-level-7 org-level-8
-          org-document-title org-block org-src-block
-          org-meta-line org-table org-link)
-        jinx-exclude-faces)
-  (after! vertico
-    (when (boundp 'vertico-multiform-categories)
-      (add-to-list 'vertico-multiform-categories '(jinx (vertico-grid-annotate . t))))))
+;;   (push `(t . (,(concat "\\<\\(" (mapconcat #'regexp-quote my-jinx-ignored-words "\\|") "\\)\\>")))
+;;         jinx-exclude-regexps)
+;;   (push '(org-mode
+;;           org-level-1 org-level-2 org-level-3 org-level-4
+;;           org-level-5 org-level-6 org-level-7 org-level-8
+;;           org-document-title org-block org-src-block
+;;           org-meta-line org-table org-link)
+;;         jinx-exclude-faces)
+;;   (after! vertico
+;;     (when (boundp 'vertico-multiform-categories)
+;;       (add-to-list 'vertico-multiform-categories '(jinx (vertico-grid-annotate . t))))))
 
 (setq forge-owned-accounts '(("aahsnr")))
 

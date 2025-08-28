@@ -26,7 +26,7 @@
        ;; (emoji +unicode)    ; 🙂
        hl-todo           ; highlight TODO/FIXME/NOTE/DEPRECATED/HACK/REVIEW
        indent-guides       ; highlighted indent columns
-       ;(ligatures +extra) ; gemini suggested
+       (ligatures +extra)
        minimap           ; show a map of the code on the side
        modeline            ; snazzy, Atom-inspired modeline, plus API
        ;;nav-flash         ; blink cursor line after big motions
@@ -35,11 +35,10 @@
        (popup
         +all
         +defaults)
-       ;; (smooth-scroll
-       ;;  +interpolate)     ; So smooth you won't believe it's not butter
+       (smooth-scroll
+        +interpolate)     ; So smooth you won't believe it's not butter
        ;;tabs
-       (treemacs
-         +lsp)
+       treemacs
        ;;unicode           ; extended unicode support for various languages
        (vc-gutter +pretty) ; vcs diff in the fringe
        ;;vi-tilde-fringe   ; fringe tildes to mark beyond EOB
@@ -52,8 +51,7 @@
        file-templates      ; auto-snippets for empty files
        fold                ; (nigh) universal code folding
        (format
-        +onsave
-        +lsp)
+        +onsave)
        ;;god               ; run Emacs commands without modifier keys
        ;;lispy             ; vim for lisp, for people who don't like vim
        ;;multiple-cursors  ; editing in many places at once
@@ -82,7 +80,7 @@
 
        :checkers
        (syntax
-        +childframe
+        +flymake
         +icons)
        ;;grammar           ; tasing grammar mistake every you make
 
@@ -90,18 +88,17 @@
        ;;ansible
        biblio              ; Writes a PhD for you (citation needed)
        ;;collab            ; buffers with friends
-       (debugger
-         +lsp)
+       debugger
        direnv
        ;;docker
        ;;editorconfig      ; let someone else argue about tabs vs spaces
        ;;ein               ; tame Jupyter notebooks with emacs
        (eval +overlay)     ; run code, run (also, repls)
-       (lookup             ; navigate your code and its documentation
-        +docsets)
+       lookup             ; navigate your code and its documentation
        ;;llm               ; when I said you needed friends, I didn't mean...
        (lsp
-        +peek)
+        +eglot
+        +booster)
        (magit
         +forge)
        ;;make              ; run make tasks from Emacs
@@ -109,7 +106,7 @@
        pdf                 ; pdf enhancements
        ;;terraform         ; infrastructure as code
        ;;tmux                ; an API for interacting with tmux
-       tree-sitter         ; syntax and parsing, sitting in a tree...
+       ;;tree-sitter         ; syntax and parsing, sitting in a tree...
        ;;upload            ; map local to remote projects via ssh/ftp
 
        :os
@@ -160,7 +157,6 @@
         +grip)
        ;;nim               ; python + lisp at the speed of c
        (nix
-        +tree-sitter
         +lsp)
        ;;ocaml             ; an objective camel
        (org
@@ -176,7 +172,6 @@
        ;;graphviz            ; diagrams for confusing yourself even more
        ;;purescript        ; javascript, but functional
        (python
-        +pyright
         +lsp)
        ;;qt                ; the 'cutest' gui framework ever
        ;;racket            ; a DSL for DSLs
@@ -188,7 +183,6 @@
        ;;scala             ; java, but good
        ;;(scheme +guile)   ; a fully conniving family of lisps
        (sh
-        +tree-sitter
         +lsp)
        ;;sml
        ;;solidity          ; do you need a blockchain? No.

@@ -60,7 +60,7 @@
 ;; --- Editor Behaviour & Completion ---
 (package! helpful)
 (package! wgrep)
-(package! jinx)
+;;(package! jinx)
 (package! consult-yasnippet)
 (package! yasnippet-capf)
                                         ;
@@ -94,10 +94,12 @@
 ;; --- Development & System ---
 (package! feature-mode)
 (package! evil-textobj-tree-sitter)
+(package! treesit-fold)
 (package! dired-open)
 (package! dired-git-info)
 (package! dired-ranger)
+(package! eglot-booster :recipe (:host github :repo "jdtsmith/eglot-booster"))
 
 ;; --- Ignored Packages ---
 (package! helm-bibtex :ignore t)
-
+(package! hydra :ignore t)
