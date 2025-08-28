@@ -2,7 +2,7 @@
 
 ## High Priority
 
-- [ ] Switch from external pkgs to built-in ones
+- [ ] Switch from external pkgs to built-in ones using [aahsnr-configs](https://github.com/aahsnr-configs/emacs) main branch
 - [ ] Remove completion powered by emacs-jupyter
 - [ ] Add polymode to support python-ts-mode
 - [ ] Somehow make python-ts-mode with jupyter-python

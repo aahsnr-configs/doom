@@ -33,6 +33,7 @@
                 (pgtk-use-im-context nil)))))
 
 (use-package! doom-themes
+  :defer t
   :custom
   (doom-themes-enable-bold t)
   (doom-themes-enable-italic t)
@@ -41,7 +42,6 @@
   (load-theme 'doom-tokyo-night t)
   (doom-themes-visual-bell-config)
   (doom-themes-treemacs-config)
-  (doom-themes-org-config)
   ;; Set distinct colors for bold and italic
   (custom-set-faces
    '(bold ((t (:foreground "#7aa2f7" :weight bold))))
@@ -73,13 +73,7 @@
         doom-modeline-icon t
         doom-modeline-major-mode-icon t
         doom-modeline-major-mode-color-icon t
-        doom-modeline-buffer-file-name-style 'truncate-upto-project
-        doom-modeline-buffer-state-icon t
-        doom-modeline-buffer-modification-icon t
-        doom-modeline-minor-modes nil
-        doom-modeline-enable-word-count nil
-        doom-modeline-buffer-encoding nil
-        doom-modeline-indent-info nil
+        doom-modeline-buffer-file-name-style 'relative
         doom-modeline-vcs-max-length 12
         doom-modeline-env-version t))
 
@@ -244,12 +238,6 @@
         "X" #'dired-open-file))
 
 ;; Use sideline for a cleaner, inline display of flycheck diagnostics.
-(use-package! sideline-flycheck
-  :hook (flycheck-mode . sideline-mode)
-  :init
-  (setq sideline-flycheck-display-mode 'point)
-  (setq sideline-backends-right '(sideline-flycheck)))
-
 ;; Configure evil-textobj-tree-sitter for advanced, syntax-aware text objects.
 (use-package! evil-textobj-tree-sitter
   :after evil
@@ -357,16 +345,12 @@ every new python buffer."
   "Modes to enable on org-mode start"
   (org-indent-mode)
   (visual-line-mode 1)
-  (+org-pretty-mode)
   (ar/org-font-setup))
 
 (after! org
   (setq org-directory my/org-directory
         org-agenda-files '("~/org/inbox.org" "~/org/projects.org" "~/org/habits.org" "~/org/goals.org")
         org-default-notes-file (expand-file-name "inbox.org" my/org-directory)
-        org-ellipsis " "
-        org-log-done 'time
-        org-log-into-drawer t
         org-startup-with-inline-images t
         org-image-actual-width 600
         org-archive-location (concat (file-name-as-directory (expand-file-name "archive" my/org-directory)) "Archive_%s::")
@@ -481,6 +465,7 @@ every new python buffer."
 
 (use-package! org-roam-ui
   :after org-roam
+  :commands org-roam-ui-mode3
   :config
   (setq org-roam-ui-sync-theme t
         org-roam-ui-follow t
@@ -632,9 +617,6 @@ every new python buffer."
       (add-to-list 'vertico-multiform-categories '(jinx (vertico-grid-annotate . t))))))
 
 (setq forge-owned-accounts '(("aahsnr")))
-
-(use-package! feature-mode :mode "\\.feature$")
-(use-package! systemd :mode "\\.service$")
 
 ;; Global leader keys for general commands, compiling, and debugging
 (map! :leader

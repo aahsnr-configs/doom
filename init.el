@@ -19,15 +19,14 @@
         +icons)
 
        :ui
-       deft              ; notational velocity for Emacs
+       ;;deft              ; notational velocity for Emacs
        doom                ; what makes DOOM look the way it does
        doom-dashboard      ; a nifty splash screen for Emacs
        ;;doom-quit         ; DOOM quit-message prompts when you quit Emacs
-       (emoji +unicode)    ; 🙂
+       ;; (emoji +unicode)    ; 🙂
        hl-todo           ; highlight TODO/FIXME/NOTE/DEPRECATED/HACK/REVIEW
        indent-guides       ; highlighted indent columns
-       (ligatures
-        +extra)
+       ;(ligatures +extra) ; gemini suggested
        minimap           ; show a map of the code on the side
        modeline            ; snazzy, Atom-inspired modeline, plus API
        ;;nav-flash         ; blink cursor line after big motions
@@ -40,13 +39,13 @@
        ;;  +interpolate)     ; So smooth you won't believe it's not butter
        ;;tabs
        (treemacs
-        +lsp)
+         +lsp)
        ;;unicode           ; extended unicode support for various languages
        (vc-gutter +pretty) ; vcs diff in the fringe
        ;;vi-tilde-fringe   ; fringe tildes to mark beyond EOB
-       window-select       ; visually switch windows
+       ;;window-select       ; visually switch windows
        workspaces          ; tab emulation, persistence & separate workspaces
-       zen                 ; distraction-free coding or writing
+       ;;zen                 ; distraction-free coding or writing
 
        :editor
        (evil +everywhere)  ; come to the dark side, we have cookies
@@ -83,15 +82,16 @@
 
        :checkers
        (syntax
+        +childframe
         +icons)
        ;;grammar           ; tasing grammar mistake every you make
 
        :tools
-       ansible
+       ;;ansible
        biblio              ; Writes a PhD for you (citation needed)
        ;;collab            ; buffers with friends
        (debugger
-        +lsp)
+         +lsp)
        direnv
        ;;docker
        ;;editorconfig      ; let someone else argue about tabs vs spaces
@@ -108,7 +108,7 @@
        ;;pass              ; password manager for nerds
        pdf                 ; pdf enhancements
        ;;terraform         ; infrastructure as code
-       tmux                ; an API for interacting with tmux
+       ;;tmux                ; an API for interacting with tmux
        tree-sitter         ; syntax and parsing, sitting in a tree...
        ;;upload            ; map local to remote projects via ssh/ftp
 
@@ -119,8 +119,7 @@
        ;;agda              ; types of types of types of types...
        ;;beancount         ; mind the GAAP
        (cc
-        +lsp
-        +tree-sitter)
+        +lsp)
        ;;clojure           ; java with a lisp
        ;;common-lisp       ; if you've seen one lisp, you've seen them all
        ;;coq               ; proofs-as-programs
@@ -173,13 +172,12 @@
         +pretty
         +roam2)
        ;;php               ; perl's insecure younger brother
-       plantuml            ; diagrams for confusing people more
-       graphviz            ; diagrams for confusing yourself even more
+       ;;plantuml            ; diagrams for confusing people more
+       ;;graphviz            ; diagrams for confusing yourself even more
        ;;purescript        ; javascript, but functional
        (python
-        +lsp
         +pyright
-        +tree-sitter)
+        +lsp)
        ;;qt                ; the 'cutest' gui framework ever
        ;;racket            ; a DSL for DSLs
        ;;raku              ; the artist formerly known as perl6
@@ -190,8 +188,8 @@
        ;;scala             ; java, but good
        ;;(scheme +guile)   ; a fully conniving family of lisps
        (sh
-        +lsp
-        +tree-sitter)
+        +tree-sitter
+        +lsp)
        ;;sml
        ;;solidity          ; do you need a blockchain? No.
        ;;swift             ; who asked for emoji variables?

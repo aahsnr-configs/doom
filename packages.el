@@ -63,7 +63,7 @@
 (package! jinx)
 (package! consult-yasnippet)
 (package! yasnippet-capf)
-;
+                                        ;
 ;; --- Evil ---
 (package! evil-multiedit)
 
@@ -78,8 +78,8 @@
 (package! citar-embark)
 (package! laas)
 (package! math-symbol-lists)
-(package! ox-chameleon :recipe (:host github :repo "tecosaur/ox-chameleon"))
-(package! engrave-faces :recipe (:host github :repo "tecosaur/engrave-faces"))
+;;(package! ox-chameleon :recipe (:host github :repo "tecosaur/ox-chameleon"))
+;;(package! engrave-faces :recipe (:host github :repo "tecosaur/engrave-faces"))
 
 ;; --- Markdown ---
 (package! md-roam :recipe (:host github :repo "nobiot/md-roam"))
@@ -93,7 +93,6 @@
 
 ;; --- Development & System ---
 (package! feature-mode)
-(package! sideline-flycheck)
 (package! evil-textobj-tree-sitter)
 (package! dired-open)
 (package! dired-git-info)
@@ -101,3 +100,4 @@
 
 ;; --- Ignored Packages ---
 (package! helm-bibtex :ignore t)
+
