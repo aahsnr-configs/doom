@@ -38,7 +38,7 @@
        (popup +all +defaults)
        (smooth-scroll +interpolate)
        ;;tabs
-       (treemacs +lsp)
+       treemacs
        ;;neotree
        ;;unicode
        (vc-gutter +pretty) ; vcs diff in the fringe
@@ -77,17 +77,18 @@
        ghostel
        ;;eshell              ; the elisp shell that works everywhere
        ;;shell             ; simple shell REPL for Emacs
-       term              ; basic terminal emulator for Emacs
+       ;; term              ; basic terminal emulator for Emacs
        ;;vterm
 
        :checkers
-       (syntax +childframe +icons)
+       (syntax +childframe +flymake +icons)
+
        ;;(spell +enchant) ; tasing you for misspelling mispelling
        ;;grammar           ; tasing grammar mistake every you make
 
        :tools
        ;;ansible
-       biblio            ; Writes a PhD for you (citation needed)
+       ;;biblio            ; Writes a PhD for you (citation needed)
        ;;collab            ; buffers with friends
        debugger          ; FIXME stepping through code, to help you add bugs
        direnv
@@ -96,7 +97,7 @@
        (eval +overlay)     ; run code, run (also, repls)
        lookup              ; navigate your code and its documentation
        llm               ; when I said you needed friends, I didn't mean...
-       (lsp +peek)
+       (lsp +eglot)
        (magit +forge)      ; a git porcelain for Emacs
        ;;make              ; run make tasks from Emacs
        ;;pass              ; password manager for nerds
@@ -138,30 +139,27 @@
        ;;(haskell +lsp)    ; a language that's lazier than I am
        ;;hy                ; readability of scheme w/ speed of python
        ;;idris             ; a language you can depend on
-       (json +lsp +tree-sitter)
+       ;;(json +lsp +tree-sitter)
        ;;janet             ; Fun fact: Janet is me!
        ;;(java +lsp)       ; the poster child for carpal tunnel syndrome
        ;;javascript        ; all(hope(abandon(ye(who(enter(here))))))
        ;;julia             ; a better, faster MATLAB
        ;;kotlin            ; a better, slicker Java(Script)
-       (latex +cdlatex +fold +lsp)
+       ;;(latex +cdlatex +fold +lsp)
        ;;lean              ; for folks with too much to prove
        ;;ledger            ; be audit you can be
        ;;lua               ; one-based indices? one-based indices
        (markdown +grip)    ; writing docs for people to ignore
        ;;nim               ; python + lisp at the speed of c
-       (nix +lsp +tree-sitter)
+       ;;(nix +lsp +tree-sitter)
        ;;ocaml             ; an objective camel
-       (org                ; organize your plain life in plain text
-        +dragndrop
-        +jupyter
-        +pretty)
+       (org +pretty)
        ;;php               ; perl's insecure younger brother
-       plantuml          ; diagrams for confusing people more
-       graphviz          ; diagrams for confusing yourself even more
+       ;;plantuml          ; diagrams for confusing people more
+       ;;graphviz          ; diagrams for confusing yourself even more
        ;;purescript        ; javascript, but functional
        (python +lsp +tree-sitter)
-       (qt +lsp +tree-sitter)
+       ;;(qt +lsp +tree-sitter)
        ;;racket            ; a DSL for DSLs
        ;;raku              ; the artist formerly known as perl6
        ;;rest              ; Emacs as a REST client

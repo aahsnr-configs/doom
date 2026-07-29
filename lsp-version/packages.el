@@ -66,4 +66,6 @@
 (package! dired-open)
 (package! org-fragtog)
 (package! magit-todos)
-
+(package! eldoc-box)
+(package! org-block-wrap
+  :recipe (:host gitlab :repo "vegasharmon/org-block-wrap"))

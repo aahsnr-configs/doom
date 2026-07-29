@@ -528,7 +528,6 @@ and comments, and only inside src blocks."
   (dolist (pair '(("sh" . "src shell")
                   ("el" . "src emacs-lisp")
                   ("py" . "src python")
-                  ("jpy" . "src jupyter-python")
                   ("tex" . "src latex")))
     (add-to-list 'org-structure-template-alist pair)))
 #+end_src
@@ -621,34 +620,12 @@ and comments, and only inside src blocks."
   (remove-hook 'org-cycle-tab-first-hook #'+org-cycle-only-current-subtree-h))
 #+end_src
 
-* Development Tools
-** Jupyter
 #+begin_src emacs-lisp
-(after! ob-jupyter
-  ;; Default header arguments for jupyter-python blocks
-  (setq org-babel-default-header-args:jupyter-python
-        '((:async . "yes")
-          (:session . "py")
-          (:kernel . "python3")
-          (:exports . "both")
-          (:results . "output")))
-
-  ;; Resource directory for images and other outputs
-  (setq org-babel-jupyter-resource-directory
-        (expand-file-name ".jupyter-resources/" org-directory))
-
-  ;; Pandoc integration for richer output rendering
-  (when (executable-find "pandoc")
-    (setq jupyter-org-pandoc-convertable
-          '("text/html" "text/markdown" "text/latex"))))
-
-;; Ensure jupyter is properly loaded when executing python blocks
-(after! org
-  (when (fboundp '+org-babel-load-jupyter-h)
-    (+org-babel-load-jupyter-h 'jupyter-python))
-  (org-babel-jupyter-override-src-block "python"))
+(use-package! org-block-wrap
+  :hook (org-mode . org-block-wrap-mode))
 #+end_src
 
+* Development Tools
 ** Version Control
 #+begin_src emacs-lisp
 (after! magit
@@ -665,6 +642,10 @@ and comments, and only inside src blocks."
 #+begin_src emacs-lisp
 (after! vertico
   (setq vertico-count 10))
+#+end_src
+
+** Eglot
+#+begin_src emacs-lisp
 #+end_src
 
 * Python Programming
@@ -705,142 +686,6 @@ and comments, and only inside src blocks."
 (after! (lsp-mode flycheck)
   (lsp-diagnostics-lsp-checker-if-needed)
   (flycheck-add-next-checker 'lsp 'python-ruff))
-#+end_src
-
-* LaTeX
-** Engine and Compilation Setup
-Configure latexmk as the build system with LuaLaTeX as the modern default engine. Doom's latex module (+cdlatex +fold) already provides AUCTeX, CDLaTeX, folding support, and SyncTeX integration. We extend it with latexmk for robust multi-pass compilation.
-
-#+begin_src emacs-lisp
-(after! tex
-  (setq TeX-engine 'luatex)
-  (setq TeX-output-dir "build/")
-  (setq LaTeX-command "latex -shell-escape")
-  (setq TeX-save-query nil)
-  (setq TeX-clean-confirm nil)
-  (setq font-latex-fontify-script 'multi-level
-        font-latex-fontify-sectioning 1.2))
-
-(after! latex
-  (add-to-list 'TeX-command-list
-               '("LuaLaTeXmk" "latexmk -pdflua -pdflualatex='lualatex -shell-escape -interaction=nonstopmode' -f -outdir=%o %S"
-                 TeX-run-TeX nil t
-                 :help "Run latexmk with LuaLaTeX") t)
-
-  ;; Add continuous preview mode (watch mode)
-  (add-to-list 'TeX-command-list
-               '("LaTeXmk-Watch" "latexmk -pvc -pdflua -pdflualatex='lualatex -shell-escape -interaction=nonstopmode' -outdir=%o %S"
-                 TeX-run-TeX nil t
-                 :help "Run latexmk in continuous preview mode") t)
-
-  (setq-default TeX-command-default
-                (cond ((eq TeX-engine 'luatex) "LuaLaTeXmk")
-                      ((eq TeX-engine 'xetex) "XeLaTeXmk")
-                      (t "LaTeXmk")))
-
-  ;; Auxiliary files to clean
-  (setq LaTeX-clean-intermediate-suffixes
-        '("\\.aux" "\\.bbl" "\\.blg" "\\.brf" "\\.fot"
-          "\\.glo" "\\.gls" "\\.idx" "\\.ilg" "\\.ind"
-          "\\.lof" "\\.log" "\\.lot" "\\.nav" "\\.out"
-          "\\.snm" "\\.toc" "\\.url" "\\.synctex\\.gz"
-          "\\.fdb_latexmk" "\\.fls" "\\.xdv"
-          "-blx\\.bib" "\\.run\\.xml"))
-
-  )
-
-;; Configure pdf-tools integration with AUCTeX
-(setq +latex-viewers '(pdf-tools))
-(after! tex
-  (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
-        TeX-view-program-list '(("PDF Tools" TeX-pdf-tools-sync-view)))
-
-  ;; Automatically revert PDF buffer after compilation
-  (add-hook 'TeX-after-compilation-finished-functions
-            #'TeX-revert-document-buffer))
-#+end_src
-
-** Org Mode Integration
-#+begin_src emacs-lisp
-(after! org
-  (add-to-list 'org-preview-latex-process-alist
-               '(luamagick
-                 :programs ("lualatex" "magick")
-                 :description "pdf > png"
-                 :message "you need to install lualatex and imagemagick."
-                 :use-xcolor t
-                 :image-input-type "pdf"
-                 :image-output-type "png"
-                 :image-size-adjust (1.0 . 1.0)
-                 :latex-compiler ("lualatex -interaction nonstopmode -output-directory %o %f")
-                 :image-converter ("magick convert -density 130 -trim -antialias %f -quality 100 %O")))
-
-  ;; Set default preview process
-  (setq org-preview-latex-default-process 'luamagick)
-
-  ;; Preview appearance settings
-  (setq org-format-latex-options
-        (plist-put org-format-latex-options :scale 2.0))
-  (setq org-format-latex-options
-        (plist-put org-format-latex-options :foreground 'default))
-  (setq org-format-latex-options
-        (plist-put org-format-latex-options :background 'default))
-
-  ;; Directory for preview images
-  (setq org-preview-latex-image-directory "ltximg/")
-
-  ;; LaTeX packages for preview
-  ;; These are added to org-latex-packages-alist in the LaTeX section
-  ;; but we ensure they're available for preview too
-  (setq org-latex-packages-alist
-        '(("" "fontspec" t ("lualatex" "xelatex"))
-          ("" "unicode-math" t ("lualatex" "xelatex"))
-          ("" "amsmath" t)
-          ("" "amssymb" t)
-          ("" "mathtools" nil))))
-
-(use-package! org-fragtog
-  :hook (org-mode . org-fragtog-mode)
-  :config
-  (setq org-fragtog-preview-delay 0.2))
-
-;; Alternative for Org 9.7+ users (uncomment if using newer Org):
-;;(after! org
-   ;; Use the new built-in preview system
-;;   (add-hook 'org-mode-hook 'org-latex-preview-auto-mode)
-;;   (setq org-latex-preview-live t)
-;;   (setq org-latex-preview-auto-mode-inline-preview-delay 0.25))
-#+end_src
-
-** Keybindings
-#+begin_src emacs-lisp
-(map! :after latex
-      :map LaTeX-mode-map
-      :localleader
-      ;; We extend with latexmk-specific commands
-      (:prefix ("b" . "build")
-       :desc "Compile with latexmk" "m" (cmd! (TeX-command "LuaLaTeXmk" 'TeX-master-file))
-       :desc "Watch mode (continuous)" "w" (cmd! (TeX-command "LaTeXmk-Watch" 'TeX-master-file))
-       :desc "View output" "v" #'TeX-view
-       :desc "Clean auxiliary files" "k" #'TeX-clean)
-
-      ;; Citation management (extends Doom's citar keybindings)
-      (:prefix ("r" . "references")
-       :desc "Insert citation" "i" #'citar-insert-citation
-       :desc "Open citation" "o" #'citar-open
-       :desc "Open library file" "f" #'citar-open-library-file
-       :desc "Open notes" "n" #'citar-open-notes
-       :desc "Create note" "N" #'citar-create-note
-       :desc "Setup project bib" "b" #'+latex-setup-project-bibliography))
-
-;; Org-mode LaTeX keybindings
-(map! :after org
-      :map org-mode-map
-      :localleader
-      (:prefix ("L" . "LaTeX")
-       :desc "Preview fragment" "p" #'org-latex-preview
-       :desc "Export to PDF" "e" #'org-latex-export-to-pdf
-       :desc "Toggle fragtog" "f" #'org-fragtog-mode))
 #+end_src
 
 * PDF Tools
