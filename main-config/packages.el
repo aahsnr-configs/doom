@@ -53,7 +53,6 @@
 ;; ...Or *all* packages (NOT RECOMMENDED; will likely break things)
 
 ;;(unpin! treemacs)
-(package! rainbow-delimiters)
 (package! rainbow-mode)
 (package! persist-text-scale)
 (package! org-super-agenda)

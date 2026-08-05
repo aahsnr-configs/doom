@@ -177,25 +177,6 @@
 #+end_src
 
 * Editor Behaviour
-** Rainbow Delimiters
-#+begin_src emacs-lisp
-(use-package! rainbow-delimiters
-  :hook ((text-mode . rainbow-delimiters-mode)
-         (LaTeX-mode . rainbow-delimiters-mode)
-         (org-src-mode . rainbow-delimiters-mode)
-         (prog-mode . rainbow-delimiters-mode)))
-
-(custom-set-faces!
- '(rainbow-delimiters-depth-1-face :foreground "#89b4fa")
- '(rainbow-delimiters-depth-2-face :foreground "#cba6f7")
- '(rainbow-delimiters-depth-3-face :foreground "#f9e2af")
- '(rainbow-delimiters-depth-4-face :foreground "#89dceb")
- '(rainbow-delimiters-depth-5-face :foreground "#f38ba8")
- '(rainbow-delimiters-depth-6-face :foreground "#a6e3a1")
- '(rainbow-delimiters-depth-7-face :foreground "#fab387")
- '(rainbow-delimiters-depth-8-face :foreground "#cdd6f4")
- '(rainbow-delimiters-depth-9-face :foreground "#bac2de"))
-#+end_src
 
 ** Rainbow Mode
 #+begin_src emacs-lisp
@@ -755,6 +736,45 @@ and comments, and only inside src blocks."
 #+begin_src emacs-lisp
 (after! vertico
   (setq vertico-count 10))
+#+end_src
+
+** Eglot
+#+begin_src emacs-lisp
+(use-package! eglot
+  :hook ((python-mode python-ts-mode) . eglot-ensure)
+  :custom
+  (eglot-autoshutdown t)
+  (eglot-events-buffer-config '(:size 0 :format full)) ; replaces obsolete eglot-events-buffer-size
+  (eglot-extend-to-xref nil)
+  ;; Render hover/doc markdown via tree-sitter instead of regex-based
+  ;; gfm-view-mode. Requires Eglot >= 1.24 and markdown-ts-mode available
+  ;; (built into Emacs 31 core; install md-ts-mode on 29/30).
+  (eglot-documentation-renderer 'markdown-ts-view-mode)
+  (eglot-ignored-server-capabilities
+   '(:documentHighlightProvider        ; avoid overlap with your own highlight/eldoc-box setup
+     :documentFormattingProvider       ; apheleia + ruff already own formatting
+     :documentRangeFormattingProvider
+     :documentOnTypeFormattingProvider
+     :colorProvider
+     :hoverProvider
+     :foldingRangeProvider))
+  (eglot-stay-out-of '(yasnippet)))
+
+(use-package! eldoc-box
+  :after eglot
+  :custom
+  (eldoc-box-max-pixel-width 800)     ; max width/height of the childframe
+  (eldoc-box-max-pixel-height 400)
+  (eldoc-box-only-multi-line t)       ; single-line signatures stay in the echo area
+  (eldoc-box-fringe-use-same-bg t)    ; no visible seam around the frame
+  (eldoc-box-clear-with-C-g t)        ; C-g dismisses like any other popup
+  :config
+  ;; On-demand only: no :hook enabling eldoc-box-hover-mode or
+  ;; eldoc-box-hover-at-point-mode, so the childframe never pops up
+  ;; automatically. `eldoc-box-help-at-point' works fine without either
+  ;; minor mode enabled, per the package's own docs.
+  (map! :map eglot-mode-map
+        :n "K" #'eldoc-box-help-at-point))
 #+end_src
 
 * Python Programming
