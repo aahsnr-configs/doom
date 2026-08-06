@@ -1,0 +1,3 @@
+[submodule "vanilla-emacs"]
+	path = vanilla-emacs
+	url = git@github.com-aahsnr-configs:aahsnr-configs/minimal-emacs
