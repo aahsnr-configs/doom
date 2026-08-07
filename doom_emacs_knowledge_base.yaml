@@ -1,0 +1,128 @@
+document:
+  title: "Doom Emacs Comprehensive Knowledge Base & Architecture Guide"
+  version: 1
+  date: "August 07, 2026"
+  description: >
+    A definitive, exhaustive reference for Doom Emacs architecture, module ecosystem, package
+    management, and configuration paradigms. This document serves as the AI's primary schema
+    for understanding Doom Emacs internals.
+
+sections:
+  - id: 1
+    title: "Core Philosophy & Architecture"
+    mantras:
+      - "Gotta go fast: Startup and run-time performance are priorities. Doom modifies packages to be snappier and load lazier."
+      - "Close to metal: Less between you and vanilla Emacs. Internals are written as if reading them were part of the UX."
+      - "Opinionated, but not stubborn: Reasonable defaults and curated opinions, but use as little or as much as you like."
+      - "Your system, your rules: Doom won't automatically install system dependencies. Rely on `doom doctor`."
+      - "Declarative Package Management: Powered by straight.el, allowing installation from anywhere and pinning to commits."
+    load_order_physics:
+      - "early-init.el: Runs before package.el and straight.el are initialized. Used for frame resizing, GC tweaks, and environment variables."
+      - "init.el: The module registry. Determines WHICH modules are loaded and in what order. Modifying this requires `doom sync`."
+      - "packages.el: The package manifest. Uses the `package!` macro to declare, pin, or disable packages via straight.el recipes. Modifying this requires `doom sync`."
+      - "config.el: The configuration payload. Uses `use-package!`, `after!`, and `map!` to configure loaded modules and packages. Evaluated lazily."
+    directory_structure:
+      - "EMACS_DIR (~/.config/emacs or ~/.emacs.d): The core Doom Emacs repository."
+      - "DOOM_DIR (~/.config/doom or ~/.doom.d): The user's private configuration directory containing init.el, packages.el, and config.el."
+      - "local/: Contains straight.el's build cache, repos, and auto-generated autoloads."
+
+  - id: 2
+    title: "The CLI Toolchain (`bin/doom`)"
+    commands:
+      - name: "doom install"
+        description: "Bootstraps Doom, installs core dependencies, and sets up the initial private configuration directory."
+      - name: "doom sync"
+        description: "Synchronizes the private config with Doom. Installs missing packages, removes orphans, regenerates autoloads, and rebuilds caches. MUST be run after changing `init.el` or `packages.el`."
+      - name: "doom sync -u"
+        description: "Updates all packages to the latest versions allowed by their pinned commits or branch."
+      - name: "doom sync --env"
+        description: "Captures a snapshot of the shell environment (PATH, etc.) so Emacs can inherit it at startup, replacing `exec-path-from-shell`."
+      - name: "doom upgrade"
+        description: "Updates Doom core itself and all installed packages to the latest release."
+      - name: "doom doctor"
+        description: "Diagnoses common system and configuration issues, checking for missing external dependencies required by enabled modules."
+      - name: "doom build"
+        description: "Rebuilds native compilation (AOT) caches and byte-compiles Elisp files for maximum performance."
+      - name: "doom purge"
+        description: "Removes orphaned packages and straight.el build artifacts that are no longer referenced in `packages.el`."
+      - name: "doom clean"
+        description: "Clears Doom's cache files to resolve obscure startup or redisplay errors."
+
+  - id: 3
+    title: "Module Ecosystem (doomemacs/modules)"
+    structure: >
+      Doom is comprised of ~150 optional modules organized into categories (e.g., :lang, :tools, :ui, :editor).
+      Each module possesses its own documentation, accessible within Doom via `M-x doom/help-modules` 
+      (or `SPC h d m` / `M-x +lookup/documentation` while hovering over a module in `init.el`).
+    key_categories:
+      - name: ":completion"
+        description: "Autocompletion frameworks (company, corfu, ivy, helm, vertico)."
+      - name: ":ui"
+        description: "Visual enhancements and interface overlays (doom-dashboard, modeline, treemacs, zen)."
+      - name: ":editor"
+        description: "Editing mechanics (evil, format, fold, multiple-cursors, snippets, parinfer)."
+      - name: ":emacs"
+        description: "Core Emacs feature overrides and enhancements (dired, ibuffer, undo, vc)."
+      - name: ":term"
+        description: "Terminal emulators and shell integrations (eshell, vterm, term)."
+      - name: ":checkers"
+        description: "Syntax and spell checking (syntax, spell)."
+      - name: ":tools"
+        description: "External tool integrations (magit, docker, lsp, debugger, direnv, eval, pass)."
+      - name: ":lang"
+        description: "Language-specific major modes, LSP configurations, REPLs, and toolchains."
+      - name: ":email"
+        description: "Email clients (mu4e, notmuch)."
+      - name: ":app"
+        description: "Standalone applications within Emacs (calendar, emms, irc, rss)."
+      - name: ":config"
+        description: "Configuration paradigms (literate programming, default bindings)."
+    module_flags:
+      - name: "+lsp"
+        description: "Enables Language Server Protocol integration for the module (usually via lsp-mode or eglot)."
+      - name: "+tree-sitter"
+        description: "Enables Tree-sitter AST parsing for enhanced syntax highlighting and structural editing."
+      - name: "+format"
+        description: "Enables automatic code formatting (usually via apheleia or formatter.el)."
+      - name: "+debug"
+        description: "Enables debugging adapters (usually via dape or dap-mode)."
+      - name: "+lsp +tree-sitter"
+        description: "Combined flags for modern IDE-like development experiences."
+
+  - id: 4
+    title: "Doom-Specific Elisp Macros & APIs"
+    macros:
+      - name: "use-package!"
+        description: "Doom's wrapper around `use-package`. Automatically handles straight.el recipes, deferred loading, and Doom-specific keywords."
+      - name: "after!"
+        description: "Executes a block of code only after a specific package or feature has been loaded. Crucial for load-order physics."
+      - name: "package!"
+        description: "Used exclusively in `packages.el` to declare packages. Supports `:recipe` for straight.el git repos, `:pin` for commits, and `:disable t` to remove Doom defaults."
+      - name: "map!"
+        description: "Doom's unified keybinding macro. Handles leader keys (`SPC`), localleader keys (`SPC m`), and state-specific bindings (e.g., `:nv` for normal/visual in Evil) concisely."
+      - name: "defadvice!"
+        description: "A cleaner syntax for `define-advice` that automatically handles naming and cleanup."
+      - name: "add-hook!"
+        description: "A cleaner syntax for `add-hook` that supports multiple hooks and functions simultaneously."
+      - name: "setq-hook!"
+        description: "Sets buffer-local variables automatically when a specific hook is triggered."
+      - name: "set-popup-rule!"
+        description: "Configures Doom's popup manager (shells, side, vslot, size, ignore) for transient buffers."
+      - name: "custom-set-faces!"
+        description: "Theme-safe face overrides that apply after the active theme loads."
+      - name: "load-theme!"
+        description: "Safely loads a theme while disabling all other active themes to prevent face bleeding."
+    apis:
+      - name: "+lookup/documentation"
+        description: "Unified documentation lookup API. Context-aware; pulls from Dash docsets, LSP, or local docs depending on the cursor position."
+      - name: "+default/search-project"
+        description: "Project-wide search and replace utilities, typically powered by ripgrep and the active completion framework (Vertico/Ivy/Helm)."
+
+  - id: 5
+    title: "Research & Verification Directives"
+    directives:
+      - "Always verify Doom module flags (e.g., `+lsp`, `+tree-sitter`) against the official `doomemacs/modules` repository README or the module's `README.org`."
+      - "When debugging package conflicts, inspect the straight.el build cache and `doom sync` logs."
+      - "Use `M-x doom/help-modules` to read the exact upstream documentation for any module before attempting to override its behavior in `config.el`."
+      - "Consult the `doomemacs/core` issues and discussions for known Emacs 31+ compatibility patches and native-compilation edge cases."
+      - "MANDATORY RESEARCH SCOPE: Before proposing any Doom-specific configuration, the AI must look for everything from https://github.com/doomemacs/modules and https://github.com/doomemacs/core to ensure alignment with upstream paradigms."

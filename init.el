@@ -21,20 +21,16 @@
        ;;layout
 
        :completion
-       ;;company
-       (corfu
-        +icons
-        +orderless
-        +dabbrev)
+       (corfu +icons +orderless +dabbrev)
        (vertico +icons)
 
        :ui
        ;;deft               ; notational velocity for Emacs
        doom                 ; what makes DOOM look the way it does
-       doom-dashboard       ; a nifty splash screen for Emacs
+       dashboard
        ;;doom-quit          ; DOOM quit-message prompts when you quit Emacs
        ;;(emoji +unicode)     ; 🙂
-       hl-todo              ; highlight TODO/FIXME/NOTE/DEPRECATED/HACK/REVIEW
+       hl-todo
        indent-guides        ; highlighted indent columns
        ;;(ligatures +extra)   ; ligatures and symbols to make your code pretty agai
        ;;minimap            ; show a map of the code on the side
@@ -73,45 +69,34 @@
        word-wrap
 
        :emacs
-       (dired
-        +dirvish
-        +icons)
-       electric            ; smarter, keyword-based electric-indent
+       (dired +dirvish +icons)
+       electric
        ;;eww               ; the internet is gross
-       (ibuffer +icons)    ; interactive buffer management
-       tramp               ; remote files at your arthritic fingertips
-       undo                ; persistent, smarter undo for your inevitable mistakes
-       vc                  ; version-control and Emacs, sitting in a tree
+       (ibuffer +icons)
+       tramp
+       undo
+       vc
 
        :term
-       eshell              ; the elisp shell that works everywhere
-       ;;shell             ; simple shell REPL for Emacs
-       ;;term              ; basic terminal emulator for Emacs
-       ghostel             ; the best terminal emulation in Emacs
+       eshell
+       ghostel
 
        :checkers
        (syntax
         +childframe
         +icons)
-       ;;(spell +flyspell) ; tasing you for misspelling mispelling
-       ;;grammar           ; tasing grammar mistake every you make
 
        :tools
-       ;;ansible
        biblio            ; Writes a PhD for you (citation needed)
-       ;;collab            ; buffers with friends
        debugger          ; FIXME stepping through code, to help you add bugs
        direnv
        (docker
         +lsp
         +tree-sitter)
-       ;;editorconfig      ; let someone else argue about tabs vs spaces
-       ;;ein               ; tame Jupyter notebooks with emacs
        (eval +overlay)     ; run code, run (also, repls)
        lookup              ; navigate your code and its documentation
-       ;;llm               ; when I said you needed friends, I didn't mean...
-       (lsp                ; M-x vscode
-        +peek)
+       llm
+       (lsp +peek)
        (magit +forge)      ; a git porcelain for Emacs
        ;;make              ; run make tasks from Emacs
        ;;pass              ; password manager for nerds
@@ -200,16 +185,17 @@
        ;;(rust +lsp)       ; Fe2O3.unwrap().unwrap().unwrap().unwrap()
        ;;scala             ; java, but good
        ;;(scheme +guile)   ; a fully conniving family of lisps
-       sh                ; she sells {ba,z,fi}sh shells on the C xor
-       ;;sml
-       ;;solidity          ; do you need a blockchain? No.
-       ;;swift             ; who asked for emoji variables?
-       ;;terra             ; Earth and Moon in alignment for performance.
-       ;;web               ; the tubes
+       (sh +lsp)
+       (web
+        +lsp
+        +tree-sitter)
        (yaml
         +lsp
         +tree-sitter)
-       ;;zig               ; C, but simpler
+       (zig
+        +lsp
+        +tree-sitter)
+
 
        :email
        ;;(mu4e +org +gmail)
@@ -225,4 +211,4 @@
 
        :config
        literate
-       (default +bindings +smartparens))
+       (default +bindings))

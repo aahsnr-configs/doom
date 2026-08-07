@@ -178,33 +178,7 @@ CLOSED: [2026-06-21 Sun 18:40]
 :LOGBOOK:
 - State "DONE"       from "TODO"       [2026-06-21 Sun 18:40]
 :END:
-* DONE Persist Text Scale
-CLOSED: [2026-06-21 Sun 18:40]
-:LOGBOOK:
-- State "DONE"       from "TODO"       [2026-06-21 Sun 18:40]
-:END:
-#+begin_src emacs-lisp
-(after! persist-text-scale
-  (setq persist-text-scale-autosave-interval (* 7 60))
-  (persist-text-scale-mode))
-#+end_src
 
-* DONE Parenthesis
-CLOSED: [2026-06-21 Sun 18:42]
-:LOGBOOK:
-- State "DONE"       from "TODO"       [2026-06-21 Sun 18:42]
-:END:
-#+begin_src emacs-lisp
-(after! smartparens
-  ;; Enable show-smartparens-mode globally
-  (show-smartparens-global-mode +1)
-  (add-hook 'prog-mode-hook #'doom-disable-show-paren-mode-h)
-  ;; But disable it in large files to prevent performance issues
-  (add-hook 'prog-mode-hook
-            (lambda ()
-              (when (> (buffer-size) 40000)
-                (show-smartparens-mode -1)))))
-#+end_src
 
 * DONE Indent Bars
 CLOSED: [2026-06-21 Sun 18:44]
@@ -1660,12 +1634,7 @@ CLOSED: [2026-06-22 Mon 05:41]
         which-key-separator " → "
         which-key-max-display-columns nil
         which-key-popup-type 'side-window
-        which-key-side-window-max-width 0.33)
-  (pushnew!
-   which-key-replacement-alist
-   '(("" . "\\`+?evil[-:]?\\(?:a-\\)?\\(.*\\)") . (nil . "◂\\1"))
-   '(("\\`g s" . "\\`evilem--?motion-\\(.*\\)") . (nil . "◃\\1"))
-   ))
+        which-key-side-window-max-width 0.33))
 #+end_src
 
 * DONE Vertico
@@ -1676,30 +1645,6 @@ CLOSED: [2026-06-22 Mon 19:18]
 #+begin_src emacs-lisp
 (after! vertico
   (setq vertico-count 12))
-#+end_src
-
-* TODO Symbol Outline
-#+begin_src emacs-lisp
-(use-package! symbols-outline
-  :defer t
-  :config
-  (setq symbols-outline-window-position 'right)
-  (symbols-outline-follow-mode 1))
-
-(add-hook! 'eglot-managed-mode-hook
-  (setq-local symbols-outline-fetch-fn #'symbols-outline-lsp-fetch))
-
-(map! :leader
-      :desc "Toggle symbols outline"
-      "c o" #'symbols-outline-show)
-#+end_src
-
-* TODO Auto Activating Snippets
-#+begin_src emacs-lisp
-(use-package! aas
-  :commands aas-mode)
-
-(setq yas-triggers-in-field t)
 #+end_src
 
 * DONE UTF-8
@@ -1720,37 +1665,6 @@ CLOSED: [2026-06-22 Mon 05:42]
   (setq x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING)))
 #+end_src
 
-* DONE Prettier Page Breaks
-CLOSED: [2026-06-22 Mon 05:46]
-:LOGBOOK:
-- State "DONE"       from "TODO"       [2026-06-22 Mon 05:46]
-:END:
-#+begin_src emacs-lisp
-(use-package! page-break-lines
-  :hook (prog-mode . page-break-lines-mode)
-  :init
-  (autoload 'turn-on-page-break-lines-mode "page-break-lines")
-  :config
-  (defvaralias 'page-break-lines-max-width 'fill-column)
-  (defun +evil-forward-page ()
-    "Call `forward-page', such that it works as intended with evil-mode."
-    (interactive)
-    (when (eq (char-after (point)) ?\^L)
-      (forward-char 1))
-    (forward-page))
-  (defun +evil-backward-page ()
-    "Call `backward-page', such that it works as intended with evil-mode."
-    (interactive)
-    (when (eq (char-after (point)) ?\^L)
-      (backward-char 1))
-    (backward-page))
-  (map! :prefix "g"
-        :desc "Prev page break" :nv "[" #'+evil-backward-page
-        :desc "Next page break" :nv "]" #'+evil-forward-page)
-  (map! "<C-M-prior>" #'+evil-backward-page
-        "<C-M-next>" #'+evil-forward-page))
-#+end_src
-
 * DONE M-x
 CLOSED: [2026-06-22 Mon 05:46]
 :LOGBOOK:
@@ -1761,44 +1675,9 @@ CLOSED: [2026-06-22 Mon 05:46]
       :desc "M-x" "SPC" #'execute-extended-command)
 #+end_src
 
-* DONE Projectile
-CLOSED: [2026-06-22 Mon 19:19]
-:LOGBOOK:
-- State "DONE"       from "TODO"       [2026-06-22 Mon 19:19]
-:END:
-#+begin_src emacs-lisp
-(after! projectile
-  (setq projectile-project-root-files-bottom-up
-        '(".projectile" ".git"))
-  (setq projectile-indexing-method 'alien)
-  (setq projectile-enable-caching t)
-  (advice-add 'projectile-find-file :around
-              (lambda (orig-fun &rest args)
-                (let ((default-directory (projectile-project-root)))
-                  (apply orig-fun args)))))
-#+end_src
 
 * TODO Treemacs
 #+begin_src emacs-lisp
-(after! treemacs
-  (defvar treemacs-file-ignore-extensions '()
-    "File extension which `treemacs-ignore-filter' will ensure are ignored")
-  (defvar treemacs-file-ignore-globs '()
-    "Globs which will are transformed to `treemacs-file-ignore-regexps' which `treemacs-ignore-filter' will ensure are ignored")
-  (defvar treemacs-file-ignore-regexps '()
-    "RegExps to be tested to ignore files, generated from `treeemacs-file-ignore-globs'")
-  (defun treemacs-file-ignore-generate-regexps ()
-    "Generate `treemacs-file-ignore-regexps' from `treemacs-file-ignore-globs'"
-    (setq treemacs-file-ignore-regexps (mapcar 'dired-glob-regexp treemacs-file-ignore-globs)))
-  (if (equal treemacs-file-ignore-globs '()) nil (treemacs-file-ignore-generate-regexps))
-  (defun treemacs-ignore-filter (file full-path)
-    "Ignore files specified by `treemacs-file-ignore-extensions', and `treemacs-file-ignore-regexps'"
-    (or (member (file-name-extension file) treemacs-file-ignore-extensions)
-        (let ((ignore-file nil))
-          (dolist (regexp treemacs-file-ignore-regexps ignore-file)
-            (setq ignore-file (or ignore-file (if (string-match-p regexp full-path) t nil)))))))
-  (add-to-list 'treemacs-ignored-file-predicates #'treemacs-ignore-filter))
-
 (setq treemacs-file-ignore-extensions
       '(;; LaTeX
         "aux"

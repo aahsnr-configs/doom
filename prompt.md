@@ -111,3 +111,59 @@ Audit all the python code in the attached markdown and then rewrite the files. M
 ---
 
 git submodule add git@github.com-aahsnr-configs:aahsnr-configs/minimal-emacs vanilla-emacs
+
+---
+
+---
+
+---
+
+# Role and Objective
+
+You are an Expert Emacs Lisp Developer and Doom Emacs Architect. Your task is to migrate my custom Vanilla Emacs configuration (provided in the attached files: `config.org`, `early-init.el`, `NEWS.31.md`, and `straight_use_package_integration.yaml`) into a clean, idiomatic, and highly optimized Doom Emacs configuration.
+
+# Tool Usage Directives (Mandatory)
+
+You MUST use your `web_search` and `web_extractor` tools to live-read the official Doom Emacs repositories. Do not rely on your internal parametric memory for Doom's defaults, as they change frequently and guessing will lead to duplicate configurations.
+
+1. **Core Framework**: Extract from `https://github.com/doomemacs/core` (Branch: `master`). Pay special attention to `early-init.el`, `lisp/doom-packages.el`, and `modules/doom/`.
+2. **Official Modules**: Extract from `https://github.com/doomemacs/modules` (Branch: `main`). The modules are located under the `modules/` subdirectory (e.g., `modules/lang/python/`, `modules/editor/evil/`, `modules/completion/vertico/`).
+3. **Raw File Fetching**: When inspecting a specific module's defaults, use the raw GitHub URLs. For example:
+   - `https://raw.githubusercontent.com/doomemacs/modules/main/modules/<category>/<module>/packages.el`
+   - `https://raw.githubusercontent.com/doomemacs/modules/main/modules/<category>/<module>/config.el`
+
+# Zero Duplication Policy
+
+You MUST NOT output configuration lines, package declarations, or keybindings that are already shipped and enabled by default in Doom Emacs modules.
+
+- Before adding a `package!` declaration or an `(after! ...)` block, use `web_extractor` to read the corresponding module's `packages.el` and `config.el` from GitHub.
+- If Doom already configures a package (e.g., `evil`, `vertico`, `magit`, `org`, `treesit`), you must only provide the _delta_ (using `after!`, `setq`, `setq-hook!`, or `add-hook!` inside `config.el`) to override or extend Doom's defaults.
+- Do not declare packages in `packages.el` if they are already installed by an enabled Doom module.
+
+# Doom Emacs Architecture Mapping
+
+Translate my configuration into Doom's three-file paradigm (`~/.doom.d/`):
+
+1. **`init.el`**: For enabling/disabling Doom modules and setting module flags inside the `doom!` block (e.g., `(editor +evil)`, `(completion vertico)`, `(lang python +lsp)`).
+2. **`packages.el`**: For declaring external packages not covered by Doom modules using the `(package! name ...)` macro. Use `(package! name :disable t)` to disable a built-in Doom package if my config replaces it with an alternative.
+3. **`config.el`**: For all `setq`, hooks, custom functions, and overrides. Use Doom's idiomatic macros: `after!`, `map!`, `add-hook!`, `setq-hook!`, and `defadvice!`. Do not use `use-package!` unless absolutely necessary for a custom external package.
+4. **`early-init.el`**: Doom handles 99% of GC deferral, UI suppression, and native-comp optimizations natively in its core `early-init.el`. Only port settings from my `early-init.el` that are strictly unique and not already covered by Doom's core.
+
+# Execution Steps
+
+1. **Analyze My Config**: Read my attached files and extract a comprehensive list of all packages, UI tweaks, keybindings, custom Elisp functions, and Emacs 31 specific features.
+2. **Map to Doom Modules**: For every package/feature in my config, search the `doomemacs/modules` repository to find the corresponding Doom module (e.g., my `evil` config maps to `(editor +evil)`, my `vertico` config maps to `(completion vertico)`, my `lsp-mode` config maps to `+lsp` flags).
+3. **Live Extract & Compare**: Use `web_extractor` on the raw GitHub URLs to see exactly what variables Doom sets and what hooks it adds for the modules I need.
+4. **Generate the Output**: Produce the exact, copy-pasteable contents of the following Doom configuration files:
+   - `~/.doom.d/init.el` (Module activation list)
+   - `~/.doom.d/packages.el` (Custom package declarations)
+   - `~/.doom.d/config.el` (Custom Elisp, hooks, and overrides)
+   - `~/.doom.d/early-init.el` (Only if strictly necessary)
+
+# Negative Constraints
+
+- NEVER blindly copy-paste my `(use-package ...)` blocks if the package is managed by a Doom module. Use `(after! package-name ...)` instead.
+- NEVER redefine keybindings that Doom's `evil` or `general` integration already handles idiomatically, unless explicitly requested. Map custom bindings using Doom's `map!` macro.
+- NEVER output code for packages that Doom installs by default (like `straight.el`, `use-package`, `general.el`, `no-littering`) unless modifying their core behavior.
+- DO NOT guess the contents of Doom's module files. You must fetch them live using `web_extractor`.
+- DO NOT duplicate Emacs 31 native features (like `treesit` or `pixel-scroll`) if the corresponding Doom module (e.g., `(lang +tree-sitter)`) already enables and configures them.
